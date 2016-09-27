@@ -28,6 +28,19 @@ char char_map[] =
   '\0','\0','\0','\0','\0','\0','\0','\0',
   '\0','\0'
 };
+void keyboard_handler(void);
+void keyboard_routine()
+{
+  Byte b = inb(0x60);
+  if(b&0x80)
+  {
+    char cPrint = char_map[b&0x7f];
+    if(cPrint == '\0')
+      printc_xy(0x00, 0x00, 'C');
+    else
+      printc_xy(0x00, 0x00, cPrint);
+  }
+}
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
