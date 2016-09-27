@@ -52,20 +52,18 @@
       movl %edx, %es
 
 #define RESTORE_ALL
-      pushl %gs; \
-      pushl %fs; \
-      pushl %es; \
-      pushl %ds; \
-      pushl %eax; \
-      pushl %ebp; \
-      pushl %edi; \
-      pushl %esi; \
-      pushl %edx; \
-      pushl %ecx; \
-      pushl %ebx; \
-      movl $__KERNEL_DS, %edx;    \
-      movl %edx, %ds;           \
-      movl %edx, %es
+      pop %ebx; \
+      pop %ecx; \
+      pop %edx; \
+      pop %esi; \
+      pop %edi; \
+      pop %ebp; \
+      pop %eax; \
+      pop %ds; \
+      pop %es; \
+      pop %fs; \
+      pop %gs; \
+
 
 #define EOI
 	movb $0x20, %al
@@ -73,5 +71,6 @@
 
 #define keyboard_handler
 	SAVE_ALL
+	EOI
 	routine
 	RESTORE_ALL
