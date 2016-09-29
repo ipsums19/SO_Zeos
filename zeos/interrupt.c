@@ -47,6 +47,26 @@ int sys_ni_syscall()
   return -38; / * ENOSYS * /
 }
 
+int sys_write_console(char *buffer, int size)
+{
+  printk(buffer);  
+  
+  return size;
+}
+
+int sys_write(int fd, char * buffer, int size)
+{
+  int check = check_fd(fd,1);
+  if(check < 0) return check;
+  else if(buffer == NULL) return -1;
+  else if(size < 0) return -1;
+  else if(buffer.size() != size) return -1;
+
+  int ret = sys_write_console(buffer, size);
+
+  return ret;
+}
+
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
   /***********************************************************************/
