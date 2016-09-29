@@ -42,6 +42,11 @@ void keyboard_routine()
   }
 }
 
+int sys_ni_syscall()
+{
+  return -38; / * ENOSYS * /
+}
+
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
   /***********************************************************************/
