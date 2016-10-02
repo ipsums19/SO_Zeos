@@ -42,6 +42,7 @@ void keyboard_routine()
   }
 }
 
+void system_call_handler(void);
 
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
@@ -94,7 +95,7 @@ void setIdt()
   /* Program interrups/exception service routines */
   idtR.base  = (DWord)idt;
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
-  
+
   set_handlers();
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
