@@ -41,7 +41,11 @@ void keyboard_routine()
       printc_xy(0x00, 0x00, cPrint);
   }
 }
-
+void clock_handler(void);
+void clock_routine()
+{
+    zeos_show_clock();
+}
 void system_call_handler(void);
 
 
@@ -99,6 +103,7 @@ void setIdt()
   set_handlers();
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
+  setInterruptHandler(32, clock_handler, 0);
   setInterruptHandler(33, keyboard_handler, 0);
   setTrapHandler(0x80, system_call_handler, 3);
 

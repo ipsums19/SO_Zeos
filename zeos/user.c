@@ -12,5 +12,6 @@ int __attribute__ ((__section__(".text.main")))
 
 
   runjp();
+  write(1,"HOLAAAAAAAAAA",10);
   while(1) { }
 }
