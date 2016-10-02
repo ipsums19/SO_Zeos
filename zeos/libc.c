@@ -39,6 +39,16 @@ int write( int fd, char * buffer, int size)
     return retorno;
 }
 
+int gettime()
+{
+    int ret;
+    __asm__("int $ 0x80"
+            :"=a" (ret)
+            :"a" (4)
+    );
+    return ret;
+}
+
 void itoa(int a, char *b)
 {
   int i, i1;

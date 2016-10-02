@@ -66,3 +66,8 @@ int sys_write(int fd, char * buffer, int size)
     return escr;
 
 }
+
+int sys_gettime()
+{
+    return 1;
+}
