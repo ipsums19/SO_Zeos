@@ -44,7 +44,7 @@ int gettime()
     int ret;
     __asm__("int $ 0x80"
             :"=a" (ret)
-            :"a" (4)
+            :"a" (10)
     );
     return ret;
 }

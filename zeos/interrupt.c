@@ -8,6 +8,7 @@
 #include <io.h>
 
 #include <zeos_interrupt.h>
+#include <system.h>
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
@@ -44,6 +45,7 @@ void keyboard_routine()
 void clock_handler(void);
 void clock_routine()
 {
+    zeos_ticks++;
     zeos_show_clock();
 }
 void system_call_handler(void);

@@ -1,5 +1,5 @@
 /*
- * system.c - 
+ * system.c -
  */
 
 #include <segment.h>
@@ -19,6 +19,8 @@ unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
 unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
 unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
 
+unsigned int zeos_ticks = 0;
+
 /************************/
 /** Auxiliar functions **/
 /************************/
@@ -36,7 +38,7 @@ unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
  */
 
 /*
- * This function MUST be 'inline' because it modifies the %esp 
+ * This function MUST be 'inline' because it modifies the %esp
  */
 inline void set_seg_regs(Word data_sel, Word stack_sel, DWord esp)
 {

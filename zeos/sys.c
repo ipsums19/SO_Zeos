@@ -8,6 +8,7 @@
 #include <mm_address.h>
 #include <sched.h>
 #include <errno.h>
+#include <system.h>
 
 #define LECTURA 0
 #define ESCRIPTURA 1
@@ -69,5 +70,5 @@ int sys_write(int fd, char * buffer, int size)
 
 int sys_gettime()
 {
-    return 1;
+    return zeos_ticks;
 }

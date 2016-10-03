@@ -11,7 +11,8 @@ int __attribute__ ((__section__(".text.main")))
      /* __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
 
 
-  runjp();
-  write(1,"HOLAAAAAAAAAA",10);
+  /*runjp();*/
+  gettime();
+  /*write(1,c,1);*/
   while(1) { }
 }
