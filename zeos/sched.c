@@ -74,8 +74,9 @@ void init_task1(void)
 void init_sched(){
     INIT_LIST_HEAD(&readyqueue);
     INIT_LIST_HEAD(&freequeue);
-    for(int i = 0; i < 10; ++i)
-        list_add_tail(&task[i].task.list, readyqueue);
+    int i;
+    for(i = 0; i < 10; ++i)
+        list_add_tail(&task[i].task.list, &readyqueue);
 }
 
 struct task_struct* current()
