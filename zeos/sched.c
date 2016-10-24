@@ -84,6 +84,17 @@ void init_idle (void)
 
 void init_task1(void)
 {
+    struct task_struct *pcb;
+    union task_union *task;
+    pcb = list_head_to_task_struct(list_first(&freequeue));
+    task = (union task_union*) pcb;
+    list_del(list_first(&freequeue));
+
+    pcb->PID = 1;
+    allocate_DIR(pcb);
+    set_user_pages(pcb);
+    tss.esp0 = (DWord) &task->stack[KERNEL_STACK_SIZE];
+    set_cr3(get_DIR(pcb));
 }
 
 
