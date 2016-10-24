@@ -65,11 +65,17 @@ void cpu_idle(void)
 void init_idle (void)
 {
     struct task_struct *pcb;
+    union task_union *task;
     pcb = list_head_to_task_struct(list_first(&freequeue));
+    task = (union task_union*) pcb;
     list_del(list_first(&freequeue));
 
     pcb->PID = 0;
     allocate_DIR(pcb);
+
+    task->stack[KERNEL_STACK_SIZE-1] = (unsigned long)&cpu_idle;
+    task->stack[KERNEL_STACK_SIZE-0] = 0;
+    pcb->esp = 0;
     //4.5
 
     idle_task = pcb;
