@@ -15,7 +15,7 @@ union task_union protected_tasks[NR_TASKS+2]
 
 union task_union *task = &protected_tasks[1]; /* == union task_union task[NR_TASKS] */
 
-#if 0
+#if 1
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
   return list_entry( l, struct task_struct, list);
@@ -25,6 +25,7 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 extern struct list_head blocked;
 struct list_head freequeue;
 struct list_head readyqueue;
+struct task_struct *idle_task;
 
 
 /* get_DIR - Returns the Page Directory address for task 't' */
@@ -63,6 +64,15 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
+    struct task_struct *pcb;
+    pcb = list_head_to_task_struct(list_first(&freequeue));
+    list_del(list_first(&freequeue));
+
+    pcb->PID = 0;
+    allocate_DIR(pcb);
+    //4.5
+
+    idle_task = pcb;
 
 }
 
