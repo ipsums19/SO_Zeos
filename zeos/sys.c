@@ -32,11 +32,21 @@ int sys_getpid()
 
 int sys_fork()
 {
-  int PID=-1;
+    int PID=-1;
 
-  // creates the child process
+    list_head l = list_first(&freequeue);
+    if(l == NULL) return -1;
+    struct task_struct *pcb;
+    pcb = list_head_to_task_struct(l);
 
-  return PID;
+    copy_data(current(), pcb, KERNEL_STACK_SIZE*4);
+    allocate_DIR(pcb);
+    int frame = alloc_frame();
+    if(frame == -1) return -2;
+
+
+
+    return PID;
 }
 
 void sys_exit()
