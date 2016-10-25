@@ -59,6 +59,16 @@ int fork()
     return ret;
 
 }
+
+int getpid()
+{
+    int ret;
+    __asm__("int $ 0x80"
+            :"=a" (ret)
+            :"a" (20)
+    );
+    return ret;
+}
 void itoa(int a, char *b)
 {
   int i, i1;
