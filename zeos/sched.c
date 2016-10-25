@@ -119,7 +119,21 @@ struct task_struct* current()
 
 void inner_task_switch(union task_union *new)
 {
+    tss.esp0 = (DWord) &new->stack[KERNEL_STACK_SIZE];
+    set_cr3(get_DIR(&new->task));
 
+    __asm__ __volatile__(
+        "movl %%ebp, %0"
+        : "=g" (current()->esp)
+    );
+    __asm__ __volatile__(
+        "movl %%esp, %0"
+        :: "g" (new->task.esp)
+    );
+    __asm__ __volatile__(
+        "popl %ebp\n"
+        "ret\n"
+    );
 }
 
 void task_switch(union task_union *new)
