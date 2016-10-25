@@ -71,11 +71,11 @@ void init_idle (void)
     list_del(list_first(&freequeue));
 
     pcb->PID = 0;
+    pcb->esp = 0;
     allocate_DIR(pcb);
 
     task->stack[KERNEL_STACK_SIZE-1] = (unsigned long)&cpu_idle;
     task->stack[KERNEL_STACK_SIZE-0] = 0;
-    pcb->esp = 0;
     //4.5
 
     idle_task = pcb;
@@ -117,3 +117,19 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
+void task_switch(union task_union *new)
+{
+    __asm__ __volatile__(
+            "pushl %esi"
+            "pushl %edi"
+            "pushl %ebx"
+            );
+
+    inner_task_switch(new);
+
+    __asm__ __volatile__(
+            "popl %ebx"
+            "popl %edi"
+            "popl %esi"
+            );
+}
