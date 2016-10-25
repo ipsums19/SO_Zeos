@@ -49,6 +49,16 @@ int gettime()
     return ret;
 }
 
+int fork()
+{
+    int ret;
+    __asm__("int $ 0x80"
+            :"=a" (ret)
+            :"a" (2)
+    );
+    return ret;
+
+}
 void itoa(int a, char *b)
 {
   int i, i1;
