@@ -117,19 +117,24 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
+void inner_task_switch(union task_union *new)
+{
+
+}
+
 void task_switch(union task_union *new)
 {
     __asm__ __volatile__(
-            "pushl %esi"
-            "pushl %edi"
-            "pushl %ebx"
+            "pushl %esi\n"
+            "pushl %edi\n"
+            "pushl %ebx\n"
             );
 
     inner_task_switch(new);
 
     __asm__ __volatile__(
-            "popl %ebx"
-            "popl %edi"
-            "popl %esi"
+            "popl %ebx\n"
+            "popl %edi\n"
+            "popl %esi\n"
             );
 }
