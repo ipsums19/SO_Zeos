@@ -13,6 +13,8 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
+int globalPID = 0;
+
 int check_fd(int fd, int permissions)
 {
   if (fd!=1) return -EBADF; /*EBADF*/
@@ -30,6 +32,11 @@ int sys_getpid()
 	return current()->PID;
 }
 
+int asignPID()
+{
+    return ++globalPID;
+}
+
 int sys_fork()
 {
     int PID=-1;
@@ -43,7 +50,9 @@ int sys_fork()
     allocate_DIR(pcb);
     int frame = alloc_frame();
     if(frame == -1) return -2;
+    //copy data from user
 
+    PID = pcb->PID = asignPID();
 
     list_add_tail(&readyqueue, l);
     return PID;
