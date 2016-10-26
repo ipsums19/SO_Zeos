@@ -45,7 +45,7 @@ int sys_fork()
     if(frame == -1) return -2;
 
 
-
+    list_add_tail(&readyqueue, l);
     return PID;
 }
 
