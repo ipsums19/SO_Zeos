@@ -32,29 +32,26 @@ int sys_getpid()
 	return current()->PID;
 }
 
-int asignPID()
-{
-    return ++globalPID;
-}
-
 int sys_fork()
 {
     int PID=-1;
-
+    //get free pcb
     list_head l = list_first(&freequeue);
     if(l == NULL) return -ENOMEM;
     struct task_struct *pcb;
     pcb = list_head_to_task_struct(l);
 
+    //copy task parent to child
     copy_data(current(), pcb, KERNEL_STACK_SIZE*4);
     allocate_DIR(pcb);
+    //alloc_frames
     int frame = alloc_frame();
     if(frame == -1) return -EAGAIN;
     //copy data from user
 
-    PID = pcb->PID = asignPID();
+    PID = pcb->PID = ++globalPID;
 
-    list_add_tail(&readyqueue, l);
+    list_add_tail(l, &readyqueue);
     return PID;
 }
 
