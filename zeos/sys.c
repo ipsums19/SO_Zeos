@@ -13,7 +13,7 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
-int globalPID = 0;
+int globalPID = 1;
 
 int check_fd(int fd, int permissions)
 {
@@ -32,13 +32,18 @@ int sys_getpid()
 	return current()->PID;
 }
 
+int ret_from_fork()
+{
+    return 0;
+}
+
 int sys_fork()
 {
     //get free pcb
-    list_head l = list_first(&freequeue);
-    if(l == NULL) return -ENOMEM;
+    struct list_head *free_list = list_first(&freequeue);
+    if(free_list == NULL) return -ENOMEM;
     struct task_struct *pcb;
-    pcb = list_head_to_task_struct(l);
+    pcb = list_head_to_task_struct(free_list);
 
     //copy task parent to child
     copy_data(current(), pcb, PAGE_SIZE);
@@ -70,10 +75,12 @@ int sys_fork()
     }
     del_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA);
 
+    set_cr3(get_DIR(current()));
+
     pcb->PID = ++globalPID;
 
-    list_del(l);
-    list_add_tail(l, &readyqueue);
+    list_del(free_list);
+    list_add_tail(free_list, &readyqueue);
     return globalPID;
 }
 
