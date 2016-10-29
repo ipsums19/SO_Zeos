@@ -65,7 +65,8 @@ int sys_fork()
         }
         set_ss_pag(new_PT, page + PAG_LOG_INIT_DATA, frame);
         set_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA, frame);
-        copy_data(,, PAGE_SIZE);
+        copy_data(PAG_LOG_INIT_DATA + NUM_PAG_DATA * PAGE_SIZE,
+                  PAG_LOG_INIT_DATA + page * PAGE_SIZE, PAGE_SIZE);
     }
     del_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA);
 
