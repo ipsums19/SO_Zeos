@@ -57,17 +57,17 @@ int sys_fork()
     for(page = 0; page < NUM_PAG_DATA; ++page)
     {
         frame = alloc_frame();
-        if(frames[page] == -1)
+        if(frame == -1)
         {
-            for(;page >= 0; --page)
-                free_frame(frames[page]);
+            for(--page ;page >= 0; --page)
+                free_frame(get_frame(new_PT, page + PAG_LOG_INIT_DATA));
             return -EAGAIN;
         }
         set_ss_pag(new_PT, page + PAG_LOG_INIT_DATA, frame);
         set_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA, frame);
-        copy_data();
-        del_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA);
+        copy_data(,, PAGE_SIZE);
     }
+    del_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA);
 
     pcb->PID = ++globalPID;
 
