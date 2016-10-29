@@ -79,6 +79,11 @@ int sys_fork()
 
     pcb->PID = ++globalPID;
 
+    union task_union *new_union = (union task_union*) pcb;
+    new_union->stack[KERNEL_STACK_SIZE-18] = (int)&ret_from_fork;
+    new_union->stack[KERNEL_STACK_SIZE-19] = 0;
+    pcb->esp = (int)&new_union->stack[KERNEL_STACK_SIZE-19];
+
     list_del(free_list);
     list_add_tail(free_list, &readyqueue);
     return globalPID;
