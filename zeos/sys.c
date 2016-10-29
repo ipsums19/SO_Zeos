@@ -44,12 +44,31 @@ int sys_fork()
     copy_data(current(), pcb, PAGE_SIZE);
     allocate_DIR(pcb);
     //alloc_frames
-    int frame = alloc_frame();
-    if(frame == -1) return -EAGAIN;
+    page_table_entry *new_PT = get_PT(pcb);
+	page_table_entry *current_PT = get_PT(current());
+    int page, frame;
+    for(page = 0; page < NUM_PAG_DATA; ++page)
+    {
+        frame = alloc_frame();
+        if(frames[page] == -1)
+        {
+            for(;page >= 0; --page)
+                free_frame(frames[page]);
+            return -EAGAIN;
+        }
+        set_ss_pag(new_PT, page + PAG_LOG_INIT_DATA, frame);
+    }
     //copy data from user
+
+    for(page = 0; page < NUM_PAG_KERNEL; ++page)
+        set_ss_pag(new_PT, page, page);
+    for(page = 0; page < NUM_PAG_CODE; ++page)
+        set_ss_pag(new_PT, page, get_frame(current_PT, page + FRAME_INIT_CODE));
+
 
     pcb->PID = ++globalPID;
 
+    list_del(l);
     list_add_tail(l, &readyqueue);
     return globalPID;
 }
