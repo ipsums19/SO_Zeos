@@ -43,37 +43,31 @@ int sys_fork()
     //copy task parent to child
     copy_data(current(), pcb, PAGE_SIZE);
     allocate_DIR(pcb);
-    //alloc_frames
+
     page_table_entry *new_PT = get_PT(pcb);
     page_table_entry *current_PT = get_PT(current());
+
     int page, frame;
+    //copy data from user
+    for(page = 0; page < NUM_PAG_KERNEL; ++page)
+        set_ss_pag(new_PT, page, page);
+    for(page = 0; page < NUM_PAG_CODE; ++page)
+        set_ss_pag(new_PT, page + PAG_LOG_INIT_CODE, get_frame(current_PT, page + FRAME_INIT_CODE));
+
     for(page = 0; page < NUM_PAG_DATA; ++page)
     {
         frame = alloc_frame();
         if(frames[page] == -1)
         {
             for(;page >= 0; --page)
-            {
                 free_frame(frames[page]);
-                del_ss_pag(current_PT, page + PAG_LOG_INIT_DATA + NUM_PAG_DATA);
-            }
             return -EAGAIN;
         }
         set_ss_pag(new_PT, page + PAG_LOG_INIT_DATA, frame);
-        set_ss_pag(current_PT, page + PAG_LOG_INIT_DATA + NUM_PAG_DATA, frame);
-    }
-    //copy data from user
-
-    for(page = 0; page < NUM_PAG_KERNEL; ++page)
-        set_ss_pag(new_PT, page, page);
-    for(page = 0; page < NUM_PAG_CODE; ++page)
-        set_ss_pag(new_PT, page + PAG_LOG_INIT_CODE, get_frame(current_PT, page + FRAME_INIT_CODE));
-    for(page = 0; page < NUM_PAG_DATA; ++page)
-    {
+        set_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA, frame);
         copy_data();
-        del_ss_pag(current_PT, page + PAG_LOG_INIT_DATA + NUM_PAG_DATA);
+        del_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA);
     }
-
 
     pcb->PID = ++globalPID;
 
