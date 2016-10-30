@@ -1,7 +1,7 @@
 #ifndef __ERRNO__
 #define __ERRNO__
 
-
+#define ESRCH 3
 #define EBADF 9 	/* Bad file descriptor */
 #define EACCES 13 	/* Permission denied */
 #define ENOSYS 38 	/* Function not implemented */

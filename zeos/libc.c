@@ -13,6 +13,7 @@ void perror()
     switch(errno)
     {
         case 0: write(1, "No error",9);break;
+        case ESRCH:write(1,"No such process",strlen("No such process"));
         case EBADF: write(1,"File descriptor wrong",21);break;
         case EACCES:write(1,"Permission denied",strlen("Permission denied"));break;
         case ENOSYS:write(1,"Function not implemented",strlen("Function not implemented"));break;
@@ -73,9 +74,9 @@ int get_stats(int pid, struct stats *st)
     int ret;
     __asm__("int $ 0x80"
             :"=a" (ret)
-            :"a" (35)
+            :"a" (35),
             "b" (pid),
-            "c" (st),
+            "c" (st)
     );
     if(ret < 0)
     {

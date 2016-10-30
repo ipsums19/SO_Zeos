@@ -40,6 +40,38 @@ page_table_entry * get_PT (struct task_struct *t)
 	return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
 }
 
+/*void reset_stats(struct task_struct *t)*/
+/*{*/
+    /*t->process_stats.user_ticks = 0;*/
+    /*t->process_stats.system_ticks = 0;*/
+    /*t->process_stats.blocked_ticks = 0;*/
+    /*t->process_stats.ready_ticks = 0;*/
+    /*t->process_stats.elapsed_total_ticks = 0;*/
+    /*t->process_stats.total_trans = 0;*/
+    /*t->process_stats.remaining_ticks = 0;*/
+/*}*/
+
+/*void user_to_system_stats(struct task_struct *t){*/
+    /*t->process_stats.user_ticks += get_ticks() - t->process_stats.user_ticks;*/
+    /*t->process_stats.elapsed_total_ticks = get_ticks();*/
+/*}*/
+
+/*void system_to_user_stats(struct task_struct *t){*/
+    /*t->process_stats.system_ticks += get_ticks() - t->process_stats.system_ticks;*/
+    /*t->process_stats.elapsed_total_ticks = get_ticks();*/
+/*}*/
+
+/*void system_to_ready_stats(struct task_struct *t){*/
+    /*t->process_stats.system_ticks += get_ticks() - t->process_stats.system_ticks;*/
+    /*t->process_stats.elapsed_total_ticks = get_ticks();*/
+/*}*/
+
+/*void ready_to_system_stats(struct task_struct *t){*/
+    /*t->process_stats.ready_ticks += get_ticks() - t->process_stats.ready_ticks;*/
+    /*t->process_stats.elapsed_total_ticks = get_ticks();*/
+    /*t->process_stats.total_trans++;*/
+/*}*/
+
 int get_quantum(struct task_struct *t)
 {
     return t->quantum;
@@ -70,9 +102,11 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dest)
     if(dest == NULL)
     {
         t->state = ST_RUN;
+        /*ready_to_system_stats(t);*/
     }
     else if(t->PID != 0)
     {
+        /*if(dest == &readyqueue) system_to_ready_stats(t);*/
         t->state = ST_READY;
         list_add_tail(&t->list, dest);
     }
@@ -131,6 +165,7 @@ void init_idle (void)
     pcb->PID = 0;
     pcb->esp = 0;
     pcb->quantum = 0;
+    reset_stats(&pcb->process_stats);
     allocate_DIR(pcb);
 
     task->stack[KERNEL_STACK_SIZE-1] = (unsigned long)&cpu_idle;
@@ -148,6 +183,7 @@ void init_task1(void)
     list_del(list_first(&freequeue));
 
     pcb->PID = 1;
+    /*reset_stats(pcb);*/
     allocate_DIR(pcb);
     set_user_pages(pcb);
     tss.esp0 = (DWord) &task->stack[KERNEL_STACK_SIZE];

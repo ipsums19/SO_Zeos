@@ -78,6 +78,7 @@ int sys_fork()
     set_cr3(get_DIR(current()));
 
     pcb->PID = ++globalPID;
+    /*reset_stats(pcb);*/
 
     union task_union *new_union = (union task_union*) pcb;
     new_union->stack[KERNEL_STACK_SIZE-18] = (int)&ret_from_fork;
@@ -128,7 +129,25 @@ int sys_gettime()
     return zeos_ticks;
 }
 
-int sys_get_stats()
+int sys_get_stats(int pid, struct stats *st)
 {
+    struct task_struct *task_stats;
+    struct stats *ret;
+    struct list_head *list_aux;
+    if(current()->PID == pid)
+        task_stats = current();
+    else
+    {
+        list_for_each(list_aux, &readyqueue)
+        {
+            task_stats = list_head_to_task_struct(list_aux);
+            if(task_stats->PID == pid)
+                ret = &task_stats-> process_stats;
+        }
 
+    }
+    if(ret == NULL)
+        return -ESRCH;
+    copy_from_user(ret, st, sizeof(struct stats));
+    return 0;
 }
