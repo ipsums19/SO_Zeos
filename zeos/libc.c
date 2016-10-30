@@ -68,6 +68,24 @@ int fork()
 
 }
 
+int get_stats(int pid, struct stats *st)
+{
+    int ret;
+    __asm__("int $ 0x80"
+            :"=a" (ret)
+            :"a" (35)
+            "b" (pid),
+            "c" (st),
+    );
+    if(ret < 0)
+    {
+        errno = -ret;
+        return -1;
+    }
+    return ret;
+
+}
+
 void exit()
 {
     __asm__("int $ 0x80"

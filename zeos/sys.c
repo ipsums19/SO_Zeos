@@ -127,3 +127,8 @@ int sys_gettime()
 {
     return zeos_ticks;
 }
+
+int sys_get_stats()
+{
+
+}
