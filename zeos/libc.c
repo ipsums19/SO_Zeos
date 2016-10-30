@@ -59,9 +59,9 @@ int fork()
             :"=a" (ret)
             :"a" (2)
     );
-    if(retorno < 0)
+    if(ret < 0)
     {
-        errno = -retorno;
+        errno = -ret;
         return -1;
     }
     return ret;
