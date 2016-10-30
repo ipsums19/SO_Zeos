@@ -40,6 +40,16 @@ page_table_entry * get_PT (struct task_struct *t)
 	return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
 }
 
+int get_quantum(struct task_struct *t)
+{
+    return t->quantum;
+}
+
+void set_quantum(struct task_struct *t, int new_quantum)
+{
+    t->quantum = new_quantum;
+}
+
 void sched_next_rr()
 {
     struct task_struct *next_task = list_head_to_task_struct(list_first(&readyqueue));
@@ -52,7 +62,8 @@ void sched_next_rr()
 
 void update_process_state_rr(struct task_struct *t, struct list_head *dest)
 {
-
+    t->state = ST_RUN;
+    current()->state = ST_READY;
 }
 
 int needs_sched_rr()
@@ -62,7 +73,7 @@ int needs_sched_rr()
 
 void update_sched_data_rr()
 {
-    if(current()->quantum > 0) current()->quantum--;
+    if(get_quantum(current()) > 0) current()->quantum--;
 }
 
 void schedule()
@@ -73,16 +84,6 @@ void schedule()
         update_process_state_rr(current(), &readyqueue);
         sched_next_rr();
     }
-}
-
-int get_quantum(struct task_struct *t)
-{
-    return t->quantum;
-}
-
-void set_quantum(struct task_struct *t, int new_quantum)
-{
-    t->quantum = new_quantum;
 }
 
 int allocate_DIR(struct task_struct *t)
