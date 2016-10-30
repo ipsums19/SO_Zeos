@@ -18,6 +18,9 @@ void perror()
         case ENOSYS:write(1,"Function not implemented",strlen("Function not implemented"));break;
         case EPNULL:write(1,"Null pointer",strlen("Null pointer"));break;
         case ESIZENEG:write(1,"Negative size",strlen("Negative size"));break;
+        case ENOMEM:write(1,"Failed to allocate memory",strlen("Failed to allocate memory"));break;
+        case EAGAIN:write(1,"Cannot allocate sufficient memory to copy parent's page table",
+                            strlen("Cannot allocate sufficient memory to copy parent's page table"));break;
     }
 }
 
@@ -56,6 +59,11 @@ int fork()
             :"=a" (ret)
             :"a" (2)
     );
+    if(retorno < 0)
+    {
+        errno = -retorno;
+        return -1;
+    }
     return ret;
 
 }
