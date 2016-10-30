@@ -68,6 +68,13 @@ int fork()
 
 }
 
+void exit()
+{
+    __asm__("int $ 0x80"
+            ::"a" (1)
+    );
+}
+
 int getpid()
 {
     int ret;

@@ -91,6 +91,11 @@ int sys_fork()
 
 void sys_exit()
 {
+    free_user_pages(current());
+    update_process_state_rr(current(), &freequeue);
+    if(!list_empty(&readyqueue))
+        update_process_state_rr(list_head_to_task_struct(list_first(&readyqueue)), NULL);
+    sched_next_rr();
 }
 
 int sys_write(int fd, char * buffer, int size)
