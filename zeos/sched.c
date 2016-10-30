@@ -40,6 +40,50 @@ page_table_entry * get_PT (struct task_struct *t)
 	return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
 }
 
+void sched_next_rr()
+{
+    struct task_struct *next_task = list_head_to_task_struct(list_first(&readyqueue));
+    if(current()->PID != 0)
+        list_add_tail(&current()->list, &readyqueue);
+    union task_union *next_union = (union task_union *) next_task;
+    task_switch(next_union);
+    set_quantum(current(), DEFAULT_QUANTUM);
+}
+
+void update_process_state_rr(struct task_struct *t, struct list_head *dest)
+{
+
+}
+
+int needs_sched_rr()
+{
+    return (get_quantum(current()) <= 0 && !(list_empty(&readyqueue)));
+}
+
+void update_sched_data_rr()
+{
+    if(current()->quantum > 0) current()->quantum--;
+}
+
+void schedule()
+{
+    update_sched_data_rr();
+    if(needs_sched_rr())
+    {
+        update_process_state_rr(current(), &readyqueue);
+        sched_next_rr();
+    }
+}
+
+int get_quantum(struct task_struct *t)
+{
+    return t->quantum;
+}
+
+void set_quantum(struct task_struct *t, int new_quantum)
+{
+    t->quantum = new_quantum;
+}
 
 int allocate_DIR(struct task_struct *t)
 {
@@ -72,14 +116,13 @@ void init_idle (void)
 
     pcb->PID = 0;
     pcb->esp = 0;
+    pcb->quantum = 0;
     allocate_DIR(pcb);
 
     task->stack[KERNEL_STACK_SIZE-1] = (unsigned long)&cpu_idle;
     task->stack[KERNEL_STACK_SIZE-0] = 0;
-    //4.5
 
     idle_task = pcb;
-
 }
 
 void init_task1(void)
