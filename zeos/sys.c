@@ -29,9 +29,7 @@ int sys_ni_syscall()
 
 int sys_getpid()
 {
-    if(current()->PID > 0)
-        return current()->PID;
-    return 1;
+    return current()->PID;
 }
 
 int ret_from_fork()
@@ -83,7 +81,31 @@ int sys_fork()
     set_cr3(get_DIR(current()));
 
     pcb->PID = ++globalPID;
-    reset_stats(pcb);
+    int i;
+    printk("\nPIDS FORK():\n");
+    for(i = 0; i < NR_TASKS; ++i){
+        switch(task[i].task.PID){
+        case 0:
+            printk("0  ");
+            break;
+        case 1:
+            printk("1  ");
+            break;
+        case 2:
+            printk("2  ");
+            break;
+        case 3:
+            printk("3  ");
+            break;
+        case 4:
+            printk("4  ");
+            break;
+        default:
+            printk("x  ");
+            break;
+        }
+    }
+    reset_stats(&pcb->process_stats);
 
     union task_union *new_union = (union task_union*) pcb;
     new_union->stack[KERNEL_STACK_SIZE-18] = (int)&ret_from_fork;

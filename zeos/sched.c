@@ -58,7 +58,7 @@ void sched_next_rr()
         next_union = (union task_union *) idle_task;
     else
     {
-        printk("   SCHED_NEXT_RR     ");
+        printk("   SCHED_NEXT_RR\n");
         list_del(next_queue);
         next_union = (union task_union *) list_head_to_task_struct(next_queue);
     }
@@ -149,7 +149,7 @@ void init_task1(void)
     task = (union task_union*) pcb;
 
     pcb->PID = 2;
-    reset_stats(pcb);
+    reset_stats(&pcb->process_stats);
     allocate_DIR(pcb);
     set_user_pages(pcb);
     tss.esp0 = (DWord) &task->stack[KERNEL_STACK_SIZE];
@@ -179,10 +179,8 @@ struct task_struct* current()
 void inner_task_switch(union task_union *new)
 {
     tss.esp0 = (DWord) &new->stack[KERNEL_STACK_SIZE];
-    printk("INNER_TASK_SWITCH\n\n ");
     set_cr3(new->task.dir_pages_baseAddr);
 
-    printk("          TASK_SWITCH      ");
     __asm__ __volatile__(
         "movl %%ebp, %0"
         : "=g" (current()->esp)
@@ -205,9 +203,6 @@ void task_switch(union task_union *new)
             "pushl %ebx\n"
             );
 
-    struct task_struct *task = &new->task;
-    if(task->PID < 1)
-        printk("\nPID = 0\n");
     inner_task_switch(new);
 
     printk("          TASK_SWITCH      ");
