@@ -77,7 +77,6 @@ int __attribute__((__section__(".text.main")))
 
   printk("Kernel Loaded!    ");
 
-
   /* Initialize hardware data */
   setGdt(); /* Definicio de la taula de segments de memoria */
   setIdt(); /* Definicio del vector de interrupcions */
@@ -104,6 +103,7 @@ int __attribute__((__section__(".text.main")))
 
   printk("Entering user mode...");
 
+  zeos_init_auxjp();
   enable_int();
   /*
    * We return from a 'theorical' call to a 'call gate' to reduce our privileges

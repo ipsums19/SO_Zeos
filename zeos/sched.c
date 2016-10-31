@@ -40,38 +40,6 @@ page_table_entry * get_PT (struct task_struct *t)
 	return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
 }
 
-/*void reset_stats(struct task_struct *t)*/
-/*{*/
-    /*t->process_stats.user_ticks = 0;*/
-    /*t->process_stats.system_ticks = 0;*/
-    /*t->process_stats.blocked_ticks = 0;*/
-    /*t->process_stats.ready_ticks = 0;*/
-    /*t->process_stats.elapsed_total_ticks = 0;*/
-    /*t->process_stats.total_trans = 0;*/
-    /*t->process_stats.remaining_ticks = 0;*/
-/*}*/
-
-/*void user_to_system_stats(struct task_struct *t){*/
-    /*t->process_stats.user_ticks += get_ticks() - t->process_stats.user_ticks;*/
-    /*t->process_stats.elapsed_total_ticks = get_ticks();*/
-/*}*/
-
-/*void system_to_user_stats(struct task_struct *t){*/
-    /*t->process_stats.system_ticks += get_ticks() - t->process_stats.system_ticks;*/
-    /*t->process_stats.elapsed_total_ticks = get_ticks();*/
-/*}*/
-
-/*void system_to_ready_stats(struct task_struct *t){*/
-    /*t->process_stats.system_ticks += get_ticks() - t->process_stats.system_ticks;*/
-    /*t->process_stats.elapsed_total_ticks = get_ticks();*/
-/*}*/
-
-/*void ready_to_system_stats(struct task_struct *t){*/
-    /*t->process_stats.ready_ticks += get_ticks() - t->process_stats.ready_ticks;*/
-    /*t->process_stats.elapsed_total_ticks = get_ticks();*/
-    /*t->process_stats.total_trans++;*/
-/*}*/
-
 int get_quantum(struct task_struct *t)
 {
     return t->quantum;
@@ -160,7 +128,7 @@ void init_idle (void)
     union task_union *task;
     pcb = list_head_to_task_struct(list_first(&freequeue));
     task = (union task_union*) pcb;
-    list_del(list_first(&freequeue));
+    list_del(&pcb->list);
 
     pcb->PID = 0;
     pcb->esp = 0;
@@ -169,8 +137,8 @@ void init_idle (void)
     allocate_DIR(pcb);
 
     task->stack[KERNEL_STACK_SIZE-1] = (unsigned long)&cpu_idle;
-    task->stack[KERNEL_STACK_SIZE-0] = 0;
-
+    task->stack[KERNEL_STACK_SIZE-2] = 0;
+    pcb->esp = task->stack[KERNEL_STACK_SIZE-2];
     idle_task = pcb;
 }
 
@@ -179,11 +147,11 @@ void init_task1(void)
     struct task_struct *pcb;
     union task_union *task;
     pcb = list_head_to_task_struct(list_first(&freequeue));
+    list_del(&pcb->list);
     task = (union task_union*) pcb;
-    list_del(list_first(&freequeue));
 
     pcb->PID = 1;
-    /*reset_stats(pcb);*/
+    reset_stats(pcb);
     allocate_DIR(pcb);
     set_user_pages(pcb);
     tss.esp0 = (DWord) &task->stack[KERNEL_STACK_SIZE];
@@ -195,8 +163,8 @@ void init_sched(){
     INIT_LIST_HEAD(&readyqueue);
     INIT_LIST_HEAD(&freequeue);
     int i;
-    for(i = 0; i < 10; ++i)
-        list_add_tail(&task[i].task.list, &readyqueue);
+    for(i = 0; i < NR_TASKS; ++i)
+        list_add_tail(&task[i].task.list, &freequeue);
 }
 
 struct task_struct* current()

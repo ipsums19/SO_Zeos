@@ -27,20 +27,20 @@ void perror()
 
 int write( int fd, char * buffer, int size)
 {
-    int retorno;
+    int ret;
     __asm__("int $  0x80"
-            :"=a" (retorno)
+            :"=a" (ret)
             :"a" (4),
             "b" (fd),
             "c" (buffer),
             "d" (size)
     );
-    if(retorno < 0)
+    if(ret < 0)
     {
-        errno = -retorno;
+        errno = -ret;
         return -1;
     }
-    return retorno;
+    return ret;
 }
 
 int gettime()

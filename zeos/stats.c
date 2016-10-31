@@ -8,7 +8,7 @@ void reset_stats(struct stats *t)
     t->system_ticks = 0;
     t->blocked_ticks = 0;
     t->ready_ticks = 0;
-    t->elapsed_total_ticks = 0;
+    t->elapsed_total_ticks = get_ticks();
     t->total_trans = 0;
     t->remaining_ticks = 0;
 }
