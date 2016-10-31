@@ -1,4 +1,5 @@
 #include <stats.h>
+#include <utils.h>
 
 
 void reset_stats(struct stats *t)

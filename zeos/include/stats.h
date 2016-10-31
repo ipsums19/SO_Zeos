@@ -1,8 +1,6 @@
 #ifndef STATS_H
 #define STATS_H
 
-#include <sched.h>
-
 /* Structure used by 'get_stats' function */
 struct stats
 {

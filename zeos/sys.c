@@ -132,7 +132,7 @@ int sys_gettime()
 int sys_get_stats(int pid, struct stats *st)
 {
     struct task_struct *task_stats;
-    struct stats *ret;
+    struct stats *ret = NULL;
     struct list_head *list_aux;
     if(current()->PID == pid)
         task_stats = current();
