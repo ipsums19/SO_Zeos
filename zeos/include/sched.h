@@ -12,7 +12,7 @@
 
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
-#define DEFAULT_QUANTUM 10000
+#define DEFAULT_QUANTUM 1000
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 

@@ -10,7 +10,7 @@ void reset_stats(struct stats *t)
     t->ready_ticks = 0;
     t->elapsed_total_ticks = get_ticks();
     t->total_trans = 0;
-    t->remaining_ticks = 0;
+    t->remaining_ticks = 1000;
 }
 
 void user_to_system_stats(struct stats *t){

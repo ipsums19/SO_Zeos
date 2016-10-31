@@ -13,7 +13,7 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
-int globalPID = 1;
+int globalPID = 2;
 
 int check_fd(int fd, int permissions)
 {
@@ -29,7 +29,9 @@ int sys_ni_syscall()
 
 int sys_getpid()
 {
-	return current()->PID;
+    if(current()->PID > 0)
+        return current()->PID;
+    return 1;
 }
 
 int ret_from_fork()
@@ -42,6 +44,7 @@ int sys_fork()
     //get free pcb
     struct list_head *free_list = list_first(&freequeue);
     if(free_list == NULL) return -ENOMEM;
+    list_del(free_list);
     struct task_struct *pcb;
     pcb = list_head_to_task_struct(free_list);
 
@@ -66,26 +69,27 @@ int sys_fork()
         {
             for(--page ;page >= 0; --page)
                 free_frame(get_frame(new_PT, page + PAG_LOG_INIT_DATA));
+            list_add_tail(free_list, &freequeue);
             return -EAGAIN;
         }
         set_ss_pag(new_PT, page + PAG_LOG_INIT_DATA, frame);
         set_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA, frame);
-        copy_data((void *)PAG_LOG_INIT_DATA + page * PAGE_SIZE,
-                  (void *)PAG_LOG_INIT_DATA + NUM_PAG_DATA * PAGE_SIZE, PAGE_SIZE);
+        int kernel_code = NUM_PAG_KERNEL + NUM_PAG_CODE;
+        copy_data((void *) ((kernel_code + page) * PAGE_SIZE),
+                  (void *) ((kernel_code + NUM_PAG_DATA) * PAGE_SIZE), PAGE_SIZE);
     }
     del_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA);
 
     set_cr3(get_DIR(current()));
 
     pcb->PID = ++globalPID;
-    /*reset_stats(pcb);*/
+    reset_stats(pcb);
 
     union task_union *new_union = (union task_union*) pcb;
     new_union->stack[KERNEL_STACK_SIZE-18] = (int)&ret_from_fork;
     new_union->stack[KERNEL_STACK_SIZE-19] = 0;
     pcb->esp = (int)&new_union->stack[KERNEL_STACK_SIZE-19];
 
-    list_del(free_list);
     list_add_tail(free_list, &readyqueue);
     return globalPID;
 }
@@ -134,8 +138,18 @@ int sys_get_stats(int pid, struct stats *st)
     struct task_struct *task_stats;
     struct stats *ret = NULL;
     struct list_head *list_aux;
-    if(current()->PID == pid)
         task_stats = current();
+        ret = &task_stats->process_stats;
+    if(pid == 1)
+        printk("PID = 1");
+    if(current()->PID == 0)
+        printk("PID->CURRENT = 0");
+    if(current()->PID == pid)
+    {
+        printk("PID = 1");
+        task_stats = current();
+        ret = &task_stats->process_stats;
+    }
     else
     {
         list_for_each(list_aux, &readyqueue)

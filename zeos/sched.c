@@ -58,6 +58,7 @@ void sched_next_rr()
         next_union = (union task_union *) idle_task;
     else
     {
+        printk("   SCHED_NEXT_RR     ");
         list_del(next_queue);
         next_union = (union task_union *) list_head_to_task_struct(next_queue);
     }
@@ -72,7 +73,7 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dest)
         t->state = ST_RUN;
         /*ready_to_system_stats(t);*/
     }
-    else if(t->PID != 0)
+    else if(t->PID != 1)
     {
         /*if(dest == &readyqueue) system_to_ready_stats(t);*/
         t->state = ST_READY;
@@ -103,13 +104,10 @@ void schedule()
 
 int allocate_DIR(struct task_struct *t)
 {
-	int pos;
-
-	pos = ((int)t-(int)task)/sizeof(union task_union);
-
-	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
-
-	return 1;
+    int pos;
+    pos = ((int)t-(int)task)/sizeof(union task_union);
+    t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
+    return 1;
 }
 
 void cpu_idle(void)
@@ -130,7 +128,7 @@ void init_idle (void)
     task = (union task_union*) pcb;
     list_del(&pcb->list);
 
-    pcb->PID = 0;
+    pcb->PID = 1;
     pcb->esp = 0;
     pcb->quantum = 0;
     reset_stats(&pcb->process_stats);
@@ -150,7 +148,7 @@ void init_task1(void)
     list_del(&pcb->list);
     task = (union task_union*) pcb;
 
-    pcb->PID = 1;
+    pcb->PID = 2;
     reset_stats(pcb);
     allocate_DIR(pcb);
     set_user_pages(pcb);
@@ -181,14 +179,16 @@ struct task_struct* current()
 void inner_task_switch(union task_union *new)
 {
     tss.esp0 = (DWord) &new->stack[KERNEL_STACK_SIZE];
-    set_cr3(get_DIR(&new->task));
+    printk("INNER_TASK_SWITCH\n\n ");
+    set_cr3(new->task.dir_pages_baseAddr);
 
+    printk("          TASK_SWITCH      ");
     __asm__ __volatile__(
         "movl %%ebp, %0"
         : "=g" (current()->esp)
     );
     __asm__ __volatile__(
-        "movl %%esp, %0"
+        "movl %0, %%esp"
         :: "g" (new->task.esp)
     );
     __asm__ __volatile__(
@@ -205,8 +205,12 @@ void task_switch(union task_union *new)
             "pushl %ebx\n"
             );
 
+    struct task_struct *task = &new->task;
+    if(task->PID < 1)
+        printk("\nPID = 0\n");
     inner_task_switch(new);
 
+    printk("          TASK_SWITCH      ");
     __asm__ __volatile__(
             "popl %ebx\n"
             "popl %edi\n"
