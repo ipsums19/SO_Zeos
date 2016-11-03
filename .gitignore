@@ -31,3 +31,9 @@
 # Debug files
 *.dSYM/
 *.su
+
+# Tars
+*.gz
+
+#gdbcmd
+.gdbcmd
