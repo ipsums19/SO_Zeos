@@ -48,6 +48,8 @@
     pushl %edx; \
     pushl %ecx; \
     pushl %ebx; \
+    ;use sched function to stats.c
+    call user_to_system
     movl $__KERNEL_DS, %edx;    \
     movl %edx, %ds;           \
     movl %edx, %es

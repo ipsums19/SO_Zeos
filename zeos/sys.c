@@ -71,12 +71,12 @@ int sys_fork()
             return -EAGAIN;
         }
         set_ss_pag(new_PT, page + PAG_LOG_INIT_DATA, frame);
-        set_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA, frame);
+        set_ss_pag(current_PT, page + PAG_LOG_INIT_DATA + NUM_PAG_DATA, frame);
         int kernel_code = NUM_PAG_KERNEL + NUM_PAG_CODE;
         copy_data((void *) ((kernel_code + page) * PAGE_SIZE),
-                  (void *) ((kernel_code + NUM_PAG_DATA) * PAGE_SIZE), PAGE_SIZE);
+                  (void *) ((kernel_code + NUM_PAG_DATA + page) * PAGE_SIZE), PAGE_SIZE);
+        del_ss_pag(current_PT, page + PAG_LOG_INIT_DATA + NUM_PAG_DATA);
     }
-    del_ss_pag(current_PT, PAG_LOG_INIT_DATA + NUM_PAG_DATA);
 
     set_cr3(get_DIR(current()));
 
@@ -110,8 +110,6 @@ void sys_exit()
 {
     free_user_pages(current());
     update_process_state_rr(current(), &freequeue);
-    if(!list_empty(&readyqueue))
-        update_process_state_rr(list_head_to_task_struct(list_first(&readyqueue)), NULL);
     sched_next_rr();
 }
 

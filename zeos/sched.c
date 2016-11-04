@@ -53,17 +53,19 @@ void set_quantum(struct task_struct *t, int new_quantum)
 void sched_next_rr()
 {
     union task_union *next_union;
-    struct list_head *next_queue = list_first(&readyqueue);
-    if(next_queue == NULL)
+    if(list_empty(&readyqueue))
         next_union = (union task_union *) idle_task;
     else
     {
+        struct list_head *next_queue = list_first(&readyqueue);
         printk("   SCHED_NEXT_RR\n");
         list_del(next_queue);
         next_union = (union task_union *) list_head_to_task_struct(next_queue);
+        update_process_state_rr(next_union, NULL);
     }
-    task_switch(next_union);
+    //quantum global
     set_quantum(current(), DEFAULT_QUANTUM);
+    task_switch(next_union);
 }
 
 void update_process_state_rr(struct task_struct *t, struct list_head *dest)
@@ -89,6 +91,7 @@ int needs_sched_rr()
 void update_sched_data_rr()
 {
     if(get_quantum(current()) > 0) current()->quantum--;
+    //canviar quantum
 }
 
 void schedule()
