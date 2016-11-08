@@ -12,6 +12,7 @@
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
+int global_Quantum;
 
 char char_map[] =
 {
@@ -47,6 +48,7 @@ void clock_routine()
 {
     zeos_ticks++;
     zeos_show_clock();
+    global_Quantum--;
     schedule();
 }
 void system_call_handler(void);

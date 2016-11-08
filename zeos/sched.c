@@ -64,7 +64,7 @@ void sched_next_rr()
         update_process_state_rr(next_union, NULL);
     }
     //quantum global
-    set_quantum(current(), DEFAULT_QUANTUM);
+    global_Quantum = get_quantum(current());
     task_switch(next_union);
 }
 
@@ -85,12 +85,12 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dest)
 
 int needs_sched_rr()
 {
-    return (get_quantum(current()) <= 0 && !(list_empty(&readyqueue)));
+    return (global_Quantum <= 0 && !(list_empty(&readyqueue)));
 }
 
 void update_sched_data_rr()
 {
-    if(get_quantum(current()) > 0) current()->quantum--;
+    if(global_Quantum > 0) global_Quantum;
     //canviar quantum
 }
 

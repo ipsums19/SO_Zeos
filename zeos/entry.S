@@ -49,12 +49,13 @@
     pushl %ecx; \
     pushl %ebx; \
     ;use sched function to stats.c
-    call user_to_system
+    call user_to_system; \
     movl $__KERNEL_DS, %edx;    \
     movl %edx, %ds;           \
     movl %edx, %es
 
 #define RESTORE_ALL \
+    call user_to_system; \
     pop %ebx; \
     pop %ecx; \
     pop %edx; \
