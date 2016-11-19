@@ -11,7 +11,6 @@
 
 extern Gate idt[IDT_ENTRIES];
 extern Register idtR;
-extern int global_Quantum;
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL);
 void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL);

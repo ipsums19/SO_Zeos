@@ -1,5 +1,5 @@
 /*
- * system.c -
+ * system.c - 
  */
 
 #include <segment.h>
@@ -11,15 +11,13 @@
 #include <mm.h>
 #include <io.h>
 #include <utils.h>
-#include <zeos_mm.h> /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
+//#include <zeos_mm.h> /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
 
 
 int (*usr_main)(void) = (void *) PH_USER_START;
 unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
 unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
 unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
-
-unsigned int zeos_ticks;
 
 /************************/
 /** Auxiliar functions **/
@@ -38,7 +36,7 @@ unsigned int zeos_ticks;
  */
 
 /*
- * This function MUST be 'inline' because it modifies the %esp
+ * This function MUST be 'inline' because it modifies the %esp 
  */
 inline void set_seg_regs(Word data_sel, Word stack_sel, DWord esp)
 {
@@ -59,8 +57,8 @@ inline void set_seg_regs(Word data_sel, Word stack_sel, DWord esp)
 /*
  *   Main entry point to ZEOS Operating System
  */
-int __attribute__((__section__(".text.main")))
-  main(void)
+int __attribute__((__section__(".text.main"))) 
+  main(void) 
 {
 
   set_eflags();
@@ -72,10 +70,7 @@ int __attribute__((__section__(".text.main")))
   // (we are still in real mode).
   set_seg_regs(__KERNEL_DS, __KERNEL_DS, (DWord) &protected_tasks[5]);
 
-  /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
-  zeos_ticks = 0;
-
-  printk("Kernel Loaded!    ");
+  printk("Kernel Loaded!    "); 
 
   /* Initialize hardware data */
   setGdt(); /* Definicio de la taula de segments de memoria */
@@ -87,7 +82,7 @@ int __attribute__((__section__(".text.main")))
 
 /* Initialize an address space to be used for the monoprocess version of ZeOS */
 
-  /*monoprocess_init_addr_space(); [> TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS <]*/
+  //monoprocess_init_addr_space(); /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
 
   /* Initialize Scheduling */
   init_sched();
@@ -99,10 +94,9 @@ int __attribute__((__section__(".text.main")))
 
   /* Move user code/data now (after the page table initialization) */
   copy_data((void *) KERNEL_START + *p_sys_size, usr_main, *p_usr_size);
-
-
-  printk("Entering user mode...");
-
+  
+  printk("Entering user mode..."); 
+  
   zeos_init_auxjp();
   enable_int();
   /*

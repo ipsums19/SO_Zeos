@@ -191,9 +191,9 @@ int main(int argc, char ** argv)
 	  die("Write of user length failed");
       if (lseek(1, 520, SEEK_SET) != 520)
 	  die("Output: seek failed");
-	buf[0] = (0x7E0A & 0xff);
-	buf[1] = ((0x7E0A >> 8) & 0xff);
-	buf[2] = ((0x7E0A >> 16) & 0xff);
+	buf[0] = (0x7DFB & 0xff);
+	buf[1] = ((0x7DFB >> 8) & 0xff);
+	buf[2] = ((0x7DFB >> 16) & 0xff);
 	buf[3] = 0;
 	if (write(1, buf, 4) != 4)
 	  die("Write of user length failed");

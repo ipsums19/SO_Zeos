@@ -1,12 +1,12 @@
 #include <list.h>
 
-/*
+/* 
  * Initializes an empty list.
  */
 void INIT_LIST_HEAD(struct list_head *list)
 {
-    list->next = list;
-    list->prev = list;
+	list->next = list;
+	list->prev = list;
 }
 
 /*
@@ -16,8 +16,8 @@ void INIT_LIST_HEAD(struct list_head *list)
  * the prev/next entries already!
  */
 static inline void __list_add(struct list_head *new,
-                  struct list_head *prev,
-                  struct list_head *next)
+			      struct list_head *prev,
+			      struct list_head *next)
 {
 	next->prev = new;
 	new->next = next;
