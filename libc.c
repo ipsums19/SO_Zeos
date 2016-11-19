@@ -1,5 +1,5 @@
 /*
- * libc.c 
+ * libc.c
  */
 
 #include <libc.h>
@@ -12,9 +12,9 @@ void itoa(int a, char *b)
 {
   int i, i1;
   char c;
-  
+
   if (a==0) { b[0]='0'; b[1]=0; return ;}
-  
+
   i=0;
   while (a>0)
   {
@@ -22,7 +22,7 @@ void itoa(int a, char *b)
     a=a/10;
     i++;
   }
-  
+
   for (i1=0; i1<i/2; i1++)
   {
     c=b[i1];
@@ -35,11 +35,11 @@ void itoa(int a, char *b)
 int strlen(char *a)
 {
   int i;
-  
+
   i=0;
-  
+
   while (a[i]!=0) i++;
-  
+
   return i;
 }
 
@@ -55,11 +55,11 @@ void perror()
 int write(int fd, char *buffer, int size)
 {
   int result;
-  
+
   __asm__ __volatile__ (
-	"int $0x80\n\t"
-	: "=a" (result)
-	: "a" (4), "b" (fd), "c" (buffer), "d" (size));
+    "int $0x80\n\t"
+    : "=a" (result)
+    : "a" (4), "b" (fd), "c" (buffer), "d" (size));
   if (result<0)
   {
     errno = -result;
@@ -68,27 +68,40 @@ int write(int fd, char *buffer, int size)
   errno=0;
   return result;
 }
- 
+
 int gettime()
 {
   int result;
-  
+
   __asm__ __volatile__ (
-	"int $0x80\n\t"
-	:"=a" (result)
-	:"a" (10) );
+    "int $0x80\n\t"
+    :"=a" (result)
+    :"a" (10) );
   errno=0;
   return result;
+}
+
+int clone(void (*function)(void), void *stack) {
+    int ret = -1;
+    asm("int $0x80;"
+        : "=r" (ret)
+        : "a" (19), "b"(function), "c" (stack) );
+
+    if (ret >= 0) return ret;
+    else {
+        errno = ret;
+        return -1;
+    }
 }
 
 int getpid()
 {
   int result;
-  
+
   __asm__ __volatile__ (
-  	"int $0x80\n\t"
-	:"=a" (result)
-	:"a" (20) );
+    "int $0x80\n\t"
+    :"=a" (result)
+    :"a" (20) );
   errno=0;
   return result;
 }
@@ -96,11 +109,11 @@ int getpid()
 int fork()
 {
   int result;
-  
+
   __asm__ __volatile__ (
-  	"int $0x80\n\t"
-	:"=a" (result)
-	:"a" (2) );
+    "int $0x80\n\t"
+    :"=a" (result)
+    :"a" (2) );
   if (result<0)
   {
     errno = -result;
@@ -113,18 +126,18 @@ int fork()
 void exit(void)
 {
   __asm__ __volatile__ (
-  	"int $0x80\n\t"
-	:
-	:"a" (1) );
+    "int $0x80\n\t"
+    :
+    :"a" (1) );
 }
 
 int yield()
 {
   int result;
   __asm__ __volatile__ (
-  	"int $0x80\n\t"
-	:"=a" (result)
-	:"a" (13) );
+    "int $0x80\n\t"
+    :"=a" (result)
+    :"a" (13) );
   return result;
 }
 
@@ -132,9 +145,9 @@ int get_stats(int pid, struct stats *st)
 {
   int result;
   __asm__ __volatile__ (
-  	"int $0x80\n\t"
-	:"=a" (result)
-	:"a" (35), "b" (pid), "c" (st) );
+    "int $0x80\n\t"
+    :"=a" (result)
+    :"a" (35), "b" (pid), "c" (st) );
   if (result<0)
   {
     errno = -result;

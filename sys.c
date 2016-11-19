@@ -22,8 +22,8 @@
 
 int check_fd(int fd, int permissions)
 {
-  if (fd!=1) return -EBADF; 
-  if (permissions!=ESCRIPTURA) return -EACCES; 
+  if (fd!=1) return -EBADF;
+  if (permissions!=ESCRIPTURA) return -EACCES;
   return 0;
 }
 
@@ -39,7 +39,7 @@ void system_to_user(void)
 
 int sys_ni_syscall()
 {
-	return -ENOSYS; 
+	return -ENOSYS;
 }
 
 int sys_getpid()
@@ -58,22 +58,22 @@ int sys_fork(void)
 {
   struct list_head *lhcurrent = NULL;
   union task_union *uchild;
-  
+
   /* Any free task_struct? */
   if (list_empty(&freequeue)) return -ENOMEM;
 
   lhcurrent=list_first(&freequeue);
-  
+
   list_del(lhcurrent);
-  
+
   uchild=(union task_union*)list_head_to_task_struct(lhcurrent);
-  
+
   /* Copy the parent's task struct to child's */
   copy_data(current(), uchild, sizeof(union task_union));
-  
+
   /* new pages dir */
   allocate_DIR((struct task_struct*)uchild);
-  
+
   /* Allocate pages for DATA+STACK */
   int new_ph_pag, pag, i;
   page_table_entry *process_PT = get_PT(&uchild->task);
@@ -94,9 +94,9 @@ int sys_fork(void)
       }
       /* Deallocate task_struct */
       list_add_tail(lhcurrent, &freequeue);
-      
+
       /* Return error */
-      return -EAGAIN; 
+      return -EAGAIN;
     }
   }
 
@@ -120,10 +120,10 @@ int sys_fork(void)
   }
   /* Deny access to the child's memory space */
   set_cr3(get_DIR(current()));
-  
+
   uchild->task.PID=++global_PID;
   uchild->task.state=ST_READY;
-  
+
   int register_ebp;		/* frame pointer */
   /* Map Parent's ebp to child's stack */
   __asm__ __volatile__ (
@@ -133,7 +133,7 @@ int sys_fork(void)
   register_ebp=(register_ebp - (int)current()) + (int)(uchild);
 
   uchild->task.register_esp=register_ebp + sizeof(DWord);
-  
+
   DWord temp_ebp=*(DWord*)register_ebp;
   /* Prepare child stack for context switch */
   uchild->task.register_esp-=sizeof(DWord);
@@ -147,7 +147,7 @@ int sys_fork(void)
   /* Queue child process into readyqueue */
   uchild->task.state=ST_READY;
   list_add_tail(&(uchild->task.list), &readyqueue);
-  
+
   return uchild->task.PID;
 }
 
@@ -164,7 +164,7 @@ int ret;
 		return -EINVAL;
 	if (!access_ok(VERIFY_READ, buffer, nbytes))
 		return -EFAULT;
-	
+
 	bytes_left = nbytes;
 	while (bytes_left > TAM_BUFFER) {
 		copy_from_user(buffer, localbuffer, TAM_BUFFER);
@@ -189,7 +189,7 @@ int sys_gettime()
 }
 
 void sys_exit()
-{  
+{
   int i;
 
   page_table_entry *process_PT = get_PT(current());
@@ -200,12 +200,12 @@ void sys_exit()
     free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
     del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
   }
-  
+
   /* Free task_struct */
   list_add_tail(&(current()->list), &freequeue);
-  
+
   current()->PID=-1;
-  
+
   /* Restarts execution of the next process */
   sched_next_rr();
 }
@@ -222,9 +222,9 @@ extern int remaining_quantum;
 int sys_get_stats(int pid, struct stats *st)
 {
   int i;
-  
-  if (!access_ok(VERIFY_WRITE, st, sizeof(struct stats))) return -EFAULT; 
-  
+
+  if (!access_ok(VERIFY_WRITE, st, sizeof(struct stats))) return -EFAULT;
+
   if (pid<0) return -EINVAL;
   for (i=0; i<NR_TASKS; i++)
   {

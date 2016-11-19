@@ -36,47 +36,47 @@ struct list_head readyqueue;
 
 void init_stats(struct stats *s)
 {
-	s->user_ticks = 0;
-	s->system_ticks = 0;
-	s->blocked_ticks = 0;
-	s->ready_ticks = 0;
-	s->elapsed_total_ticks = get_ticks();
-	s->total_trans = 0;
-	s->remaining_ticks = get_ticks();
+    s->user_ticks = 0;
+    s->system_ticks = 0;
+    s->blocked_ticks = 0;
+    s->ready_ticks = 0;
+    s->elapsed_total_ticks = get_ticks();
+    s->total_trans = 0;
+    s->remaining_ticks = get_ticks();
 }
 
 /* get_DIR - Returns the Page Directory address for task 't' */
-page_table_entry * get_DIR (struct task_struct *t) 
+page_table_entry * get_DIR (struct task_struct *t)
 {
-	return t->dir_pages_baseAddr;
+    return t->dir_pages_baseAddr;
 }
 
 /* get_PT - Returns the Page Table address for task 't' */
-page_table_entry * get_PT (struct task_struct *t) 
+page_table_entry * get_PT (struct task_struct *t)
 {
-	return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
+    return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
 }
 
 
-int allocate_DIR(struct task_struct *t) 
+int allocate_DIR(struct task_struct *t)
 {
-	int pos;
+    int pos;
 
-	pos = ((int)t-(int)task)/sizeof(union task_union);
+    pos = ((int)t-(int)task)/sizeof(union task_union);
 
-	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos]; 
+    t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
 
-	return 1;
+    return 1;
 }
 
 void cpu_idle(void)
 {
-	__asm__ __volatile__("sti": : :"memory");
+    __asm__ __volatile__("sti": : :"memory");
 
-	while(1)
-	{
-	;
-	}
+    while(1)
+    {
+    ;
+    }
 }
 
 #define DEFAULT_QUANTUM 10
@@ -129,7 +129,7 @@ void sched_next_rr(void)
   struct task_struct *t;
 
   if (!list_empty(&readyqueue)) {
-	e = list_first(&readyqueue);
+    e = list_first(&readyqueue);
     list_del(e);
 
     t=list_head_to_task_struct(e);
@@ -229,10 +229,10 @@ void init_sched()
 struct task_struct* current()
 {
   int ret_value;
-  
+
   __asm__ __volatile__(
-  	"movl %%esp, %0"
-	: "=g" (ret_value)
+      "movl %%esp, %0"
+    : "=g" (ret_value)
   );
   return (struct task_struct*)(ret_value&0xfffff000);
 }
@@ -255,43 +255,43 @@ void inner_task_switch(union task_union *new)
 
   /* Stores current ebp */
   __asm__ __volatile__ (
-  	"movl %%ebp, %0\n\t"
-	: "=g" (current()->register_esp)
-	: );
+      "movl %%ebp, %0\n\t"
+    : "=g" (current()->register_esp)
+    : );
 
   /* Restores new esp. Now, we are in the new process */
   __asm__ __volatile__ (
-  	"movl %0, %%esp\n\t"
-	:
-	: "g" (new->task.register_esp) );
+      "movl %0, %%esp\n\t"
+    :
+    : "g" (new->task.register_esp) );
 
   /* Restores ebp from the stack */
   __asm__ __volatile__ (
-  	"popl %%ebp\n\t"
-	:
-	: );
+      "popl %%ebp\n\t"
+    :
+    : );
 
   /* To prevent returning with compiler's frame recovery, we put our own ret instr */
   __asm__ __volatile__ (
-  	"ret\n\t"
-	:
-	: );
+      "ret\n\t"
+    :
+    : );
 }
 
 /* Given the new process, performs a task switch */
 void task_switch(union task_union *new)
 {
   __asm__ __volatile__ (
-  	"pushl %esi\n\t"
-	"pushl %edi\n\t"
-	"pushl %ebx\n\t"
-	);
+      "pushl %esi\n\t"
+    "pushl %edi\n\t"
+    "pushl %ebx\n\t"
+    );
   inner_task_switch(new);
   __asm__ __volatile__ (
-  	"popl %ebx\n\t"
-	"popl %edi\n\t"
-	"popl %esi\n\t"
-	);
+      "popl %ebx\n\t"
+    "popl %edi\n\t"
+    "popl %esi\n\t"
+    );
 }
 
 /* Force a task switch assuming that the scheduler does not work with priorities */
