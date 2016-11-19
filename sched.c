@@ -33,6 +33,8 @@ extern struct list_head blocked;
 struct list_head freequeue;
 // Ready queue
 struct list_head readyqueue;
+//count
+int dir_count[NR_TASKS];
 
 void init_stats(struct stats *s)
 {
@@ -60,13 +62,15 @@ page_table_entry * get_PT (struct task_struct *t)
 
 int allocate_DIR(struct task_struct *t)
 {
-    int pos;
-
-    pos = ((int)t-(int)task)/sizeof(union task_union);
-
-    t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
-
-    return 1;
+    int i;
+    for (i = 0; i < NR_TASKS; ++i) {
+        if (dir_count[i] == 0) { // if == 0 --> found
+            dir_count[i] = 1;
+            t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[i];
+            return 1;
+        }
+    }
+    return -1;
 }
 
 void cpu_idle(void)

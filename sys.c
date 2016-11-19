@@ -54,6 +54,61 @@ int ret_from_fork()
   return 0;
 }
 
+int sys_clone(void (*function)(void), void *stack)
+{
+
+  struct list_head *lhcurrent = NULL;
+  union task_union *uchild;
+
+  /* Any free task_struct? */
+  if (list_empty(&freequeue)) return -ENOMEM;
+
+  lhcurrent=list_first(&freequeue);
+
+  list_del(lhcurrent);
+
+  uchild=(union task_union*)list_head_to_task_struct(lhcurrent);
+
+  /* Copy the parent's task struct to child's */
+  copy_data(current(), uchild, sizeof(union task_union));
+
+  /* global pid */
+  uchild->task.PID=++global_PID;
+  uchild->task.state=ST_READY;
+
+  int register_ebp;		/* frame pointer */
+  /* Map Parent's ebp to child's stack */
+  __asm__ __volatile__ (
+    "movl %%ebp, %0\n\t"
+      : "=g" (register_ebp)
+      : );
+  register_ebp=(register_ebp - (int)current()) + (int)(uchild);
+
+  uchild->task.register_esp=register_ebp + sizeof(DWord);
+
+  DWord temp_ebp=*(DWord*)register_ebp;
+  /* Prepare child stack for context switch */
+  uchild->task.register_esp-=sizeof(DWord);
+  *(DWord*)(uchild->task.register_esp)=(DWord)&ret_from_fork;
+  uchild->task.register_esp-=sizeof(DWord);
+  *(DWord*)(uchild->task.register_esp)=temp_ebp;
+  uchild->stack[KERNEL_STACK_SIZE-5] = function;
+  uchild->stack[KERNEL_STACK_SIZE-2] = stack;
+
+  /* Add to dir count */
+  int pos = calculate_dir_pos(current());
+  dir_count[pos]++;
+
+  /* Set stats to 0 */
+  init_stats(&(uchild->task.p_stats));
+
+  /* Queue child process into readyqueue */
+  uchild->task.state=ST_READY;
+  list_add_tail(&(uchild->task.list), &readyqueue);
+
+  return uchild->task.PID;
+}
+
 int sys_fork(void)
 {
   struct list_head *lhcurrent = NULL;
@@ -190,20 +245,22 @@ int sys_gettime()
 
 void sys_exit()
 {
-  int i;
-
-  page_table_entry *process_PT = get_PT(current());
-
   // Deallocate all the propietary physical pages
-  for (i=0; i<NUM_PAG_DATA; i++)
+  /* Add to dir count */
+  int pos = calculate_dir_pos(current());
+  if(--dir_count[pos] == 0)
   {
-    free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
-    del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
+      page_table_entry *process_PT = get_PT(current());
+      int i;
+      for (i=0; i<NUM_PAG_DATA; i++)
+      {
+        free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
+        del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
+      }
   }
 
   /* Free task_struct */
   list_add_tail(&(current()->list), &freequeue);
-
   current()->PID=-1;
 
   /* Restarts execution of the next process */
