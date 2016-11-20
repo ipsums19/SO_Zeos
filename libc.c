@@ -141,9 +141,10 @@ int yield()
   return result;
 }
 
-int sem_init (int n_sem, unsigned int value) {
+int sem_init (int n_sem, unsigned int value)
+{
     int ret;
-    __asm__ volatile(
+    __asm__ __volatile__(
         "int $0x80"
         :"=a" (ret),
         "+b" (n_sem),
@@ -157,9 +158,10 @@ int sem_init (int n_sem, unsigned int value) {
     return ret;
 }
 
-int sem_wait (int n_sem) {
+int sem_wait (int n_sem)
+{
   int ret;
-  __asm__ volatile(
+  __asm__ __volatile__(
     "int $0x80"
     :"=a" (ret),
     "+b" (n_sem)
@@ -172,9 +174,10 @@ int sem_wait (int n_sem) {
   return ret;
 }
 
-int sem_signal (int n_sem) {
+int sem_signal (int n_sem)
+{
   int ret;
-  __asm__ volatile(
+  __asm__ __volatile__(
     "int $0x80"
     :"=a" (ret),
     "+b" (n_sem)
@@ -187,9 +190,10 @@ int sem_signal (int n_sem) {
   return ret;
 }
 
-int sem_destroy (int n_sem) {
+int sem_destroy (int n_sem)
+{
   int ret;
-  __asm__ volatile(
+  __asm__ __volatile__(
     "int $0x80"
     :"=a" (ret),
     "+b" (n_sem)

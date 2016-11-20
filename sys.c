@@ -2,23 +2,18 @@
  * sys.c - Syscalls implementation
  */
 #include <devices.h>
-
 #include <utils.h>
-
 #include <io.h>
-
 #include <mm.h>
-
 #include <mm_address.h>
-
 #include <sched.h>
-
 #include <p_stats.h>
-
 #include <errno.h>
 
 #define LECTURA 0
 #define ESCRIPTURA 1
+
+struct semaphores sem_array[NR_SEM];
 
 int check_fd(int fd, int permissions)
 {
@@ -209,30 +204,30 @@ int sys_fork(void)
 #define TAM_BUFFER 512
 
 int sys_write(int fd, char *buffer, int nbytes) {
-char localbuffer [TAM_BUFFER];
-int bytes_left;
-int ret;
+  char localbuffer [TAM_BUFFER];
+  int bytes_left;
+  int ret;
 
-	if ((ret = check_fd(fd, ESCRIPTURA)))
-		return ret;
-	if (nbytes < 0)
-		return -EINVAL;
-	if (!access_ok(VERIFY_READ, buffer, nbytes))
-		return -EFAULT;
+  if ((ret = check_fd(fd, ESCRIPTURA)))
+    return ret;
+  if (nbytes < 0)
+    return -EINVAL;
+  if (!access_ok(VERIFY_READ, buffer, nbytes))
+    return -EFAULT;
 
-	bytes_left = nbytes;
-	while (bytes_left > TAM_BUFFER) {
-		copy_from_user(buffer, localbuffer, TAM_BUFFER);
-		ret = sys_write_console(localbuffer, TAM_BUFFER);
-		bytes_left-=ret;
-		buffer+=ret;
-	}
-	if (bytes_left > 0) {
-		copy_from_user(buffer, localbuffer,bytes_left);
-		ret = sys_write_console(localbuffer, bytes_left);
-		bytes_left-=ret;
-	}
-	return (nbytes-bytes_left);
+  bytes_left = nbytes;
+  while (bytes_left > TAM_BUFFER) {
+    copy_from_user(buffer, localbuffer, TAM_BUFFER);
+    ret = sys_write_console(localbuffer, TAM_BUFFER);
+    bytes_left-=ret;
+    buffer+=ret;
+  }
+  if (bytes_left > 0) {
+    copy_from_user(buffer, localbuffer,bytes_left);
+    ret = sys_write_console(localbuffer, bytes_left);
+    bytes_left-=ret;
+  }
+  return (nbytes-bytes_left);
 }
 
 
@@ -250,13 +245,13 @@ void sys_exit()
   int pos = calculate_dir_pos(current());
   if(--dir_count[pos] == 0)
   {
-      page_table_entry *process_PT = get_PT(current());
-      int i;
-      for (i=0; i<NUM_PAG_DATA; i++)
-      {
-        free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
-        del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
-      }
+    page_table_entry *process_PT = get_PT(current());
+    int i;
+    for (i=0; i<NUM_PAG_DATA; i++)
+    {
+      free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
+      del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
+    }
   }
 
   /* Free task_struct */
@@ -293,4 +288,56 @@ int sys_get_stats(int pid, struct stats *st)
     }
   }
   return -ESRCH; /*ESRCH */
+}
+
+int sys_sem_init(int n_sem, unsigned int counter) {
+  if (n_sem < 0 || n_sem >= NR_SEM) return -EINVAL;
+  if (sem_array[n_sem].pid_owner != -1) return -EPERM;
+  sem_array[n_sem].pid_owner = current()->PID;
+  sem_array[n_sem].counter = counter;
+  INIT_LIST_HEAD(&sem_array[n_sem].sem_queue);
+  return 0;
+}
+
+
+int sys_sem_wait(int n_sem) {
+  if (n_sem < 0 || n_sem >= NR_SEM) return -EINVAL;
+  if (sem_array[n_sem].pid_owner != -1) return -EPERM;
+  if (sem_array[n_sem].counter <= 0) {
+    struct list_head *task_list = &current()->list;
+    list_add_tail(task_list, &sem_array[n_sem].sem_queue);
+  }
+  else sem_array[n_sem].counter--;
+
+  if (sem_array[n_sem].pid_owner == -1) return -EINVAL;
+  return 0;
+}
+
+int sys_sem_signal(int n_sem) {
+  if (n_sem < 0 || n_sem >= NR_SEM) return -EINVAL;
+  if (sem_array[n_sem].pid_owner != -1) return -EPERM;
+  if(list_empty(&sem_array[n_sem].sem_queue)) sem_array[n_sem].counter++;
+  else {
+    struct list_head *task_list = list_first(&sem_array[n_sem].sem_queue);
+    list_del(task_list);
+    list_add_tail(task_list, &readyqueue);
+  }
+  return 0;
+}
+
+
+int sys_sem_destroy(int n_sem) {
+  if (n_sem < 0 || n_sem >= NR_SEM) return -EINVAL;
+  if (sem_array[n_sem].pid_owner != -1) return -EPERM;
+  if (current()->PID == sem_array[n_sem].pid_owner) {
+    sem_array[n_sem].pid_owner = -1;
+    while (!list_empty(&sem_array[n_sem].sem_queue)) {
+      struct list_head *task_list = list_first(&sem_array[n_sem].sem_queue);
+      list_del(task_list);
+      list_add_tail(task_list, &readyqueue);
+    }
+  }
+  else return -1;
+
+  return 0;
 }
