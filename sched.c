@@ -139,7 +139,7 @@ void sched_next_rr(void)
     t=list_head_to_task_struct(e);
   }
   else
-    t=idle_task;
+  t=idle_task;
 
   t->state=ST_RUN;
   remaining_quantum=get_quantum(t);

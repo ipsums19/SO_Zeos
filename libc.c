@@ -141,6 +141,67 @@ int yield()
   return result;
 }
 
+int sem_init (int n_sem, unsigned int value) {
+    int ret;
+    __asm__ volatile(
+        "int $0x80"
+        :"=a" (ret),
+        "+b" (n_sem),
+        "+c" (value)
+        :"a"  (21)
+    );
+    if (ret < 0) {
+        errno = -ret;
+        ret = -1;
+    }
+    return ret;
+}
+
+int sem_wait (int n_sem) {
+  int ret;
+  __asm__ volatile(
+    "int $0x80"
+    :"=a" (ret),
+    "+b" (n_sem)
+    :"a"  (22)
+  );
+  if (ret < 0) {
+  errno = -ret;
+  ret = -1;
+  }
+  return ret;
+}
+
+int sem_signal (int n_sem) {
+  int ret;
+  __asm__ volatile(
+    "int $0x80"
+    :"=a" (ret),
+    "+b" (n_sem)
+    :"a"  (23)
+  );
+  if (ret < 0) {
+    errno = -ret;
+    ret = -1;
+  }
+  return ret;
+}
+
+int sem_destroy (int n_sem) {
+  int ret;
+  __asm__ volatile(
+    "int $0x80"
+    :"=a" (ret),
+    "+b" (n_sem)
+    :"a"  (24)
+  );
+  if (ret < 0) {
+    errno = -ret;
+    ret = -1;
+  }
+  return ret;
+}
+
 int get_stats(int pid, struct stats *st)
 {
   int result;
