@@ -36,6 +36,8 @@ struct list_head readyqueue;
 //count
 int dir_count[NR_TASKS];
 
+struct semaphores sem_array[NR_SEM];
+
 void init_stats(struct stats *s)
 {
     s->user_ticks = 0;
@@ -224,10 +226,20 @@ void init_freequeue()
   }
 }
 
+void init_sem()
+{
+  int i;
+  for(i = 0; i < NR_SEM; ++i)
+  {
+    sem_array[i].pid_owner = -1;
+  }
+}
+
 void init_sched()
 {
   init_freequeue();
   INIT_LIST_HEAD(&readyqueue);
+  init_sem();
 }
 
 struct task_struct* current()

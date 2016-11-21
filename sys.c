@@ -13,8 +13,6 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
-struct semaphores sem_array[NR_SEM];
-
 int check_fd(int fd, int permissions)
 {
   if (fd!=1) return -EBADF;
@@ -238,30 +236,6 @@ int sys_gettime()
   return zeos_ticks;
 }
 
-void sys_exit()
-{
-  // Deallocate all the propietary physical pages
-  /* Add to dir count */
-  int pos = calculate_dir_pos(current());
-  if(--dir_count[pos] == 0)
-  {
-    page_table_entry *process_PT = get_PT(current());
-    int i;
-    for (i=0; i<NUM_PAG_DATA; i++)
-    {
-      free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
-      del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
-    }
-  }
-
-  /* Free task_struct */
-  list_add_tail(&(current()->list), &freequeue);
-  current()->PID=-1;
-
-  /* Restarts execution of the next process */
-  sched_next_rr();
-}
-
 /* System call to force a task switch */
 int sys_yield()
 {
@@ -292,7 +266,7 @@ int sys_get_stats(int pid, struct stats *st)
 
 int sys_sem_init(int n_sem, unsigned int counter) {
   if (n_sem < 0 || n_sem >= NR_SEM) return -EINVAL;
-  if (sem_array[n_sem].pid_owner != -1) return -EPERM;
+  if (sem_array[n_sem].pid_owner != -1) return -EBUSY;
   sem_array[n_sem].pid_owner = current()->PID;
   sem_array[n_sem].counter = counter;
   INIT_LIST_HEAD(&sem_array[n_sem].sem_queue);
@@ -301,43 +275,70 @@ int sys_sem_init(int n_sem, unsigned int counter) {
 
 
 int sys_sem_wait(int n_sem) {
-  if (n_sem < 0 || n_sem >= NR_SEM) return -EINVAL;
-  if (sem_array[n_sem].pid_owner != -1) return -EPERM;
-  if (sem_array[n_sem].counter <= 0) {
-    struct list_head *task_list = &current()->list;
-    list_add_tail(task_list, &sem_array[n_sem].sem_queue);
+  if (n_sem < 0 || n_sem >= NR_SEM || sem_array[n_sem].pid_owner == -1) return -EINVAL;
+  if (--sem_array[n_sem].counter <= 0)
+  {
+    update_process_state_rr(current(), &sem_array[n_sem].sem_queue);
+    sched_next_rr();
   }
-  else sem_array[n_sem].counter--;
-
   if (sem_array[n_sem].pid_owner == -1) return -EINVAL;
   return 0;
 }
 
 int sys_sem_signal(int n_sem) {
   if (n_sem < 0 || n_sem >= NR_SEM) return -EINVAL;
-  if (sem_array[n_sem].pid_owner != -1) return -EPERM;
+  if (sem_array[n_sem].pid_owner == -1) return -EINVAL;
   if(list_empty(&sem_array[n_sem].sem_queue)) sem_array[n_sem].counter++;
-  else {
-    struct list_head *task_list = list_first(&sem_array[n_sem].sem_queue);
-    list_del(task_list);
-    list_add_tail(task_list, &readyqueue);
+  else
+  {
+    struct task_struct* to_ready = list_head_to_task_struct(list_first(&sem_array[n_sem].sem_queue));
+    to_ready->state = ST_READY;
+    list_del(&to_ready->list);
+    list_add_tail(&to_ready->list, &readyqueue);
   }
   return 0;
 }
 
-
 int sys_sem_destroy(int n_sem) {
-  if (n_sem < 0 || n_sem >= NR_SEM) return -EINVAL;
-  if (sem_array[n_sem].pid_owner != -1) return -EPERM;
-  if (current()->PID == sem_array[n_sem].pid_owner) {
-    sem_array[n_sem].pid_owner = -1;
-    while (!list_empty(&sem_array[n_sem].sem_queue)) {
-      struct list_head *task_list = list_first(&sem_array[n_sem].sem_queue);
-      list_del(task_list);
-      list_add_tail(task_list, &readyqueue);
+  if (n_sem < 0 || n_sem >= NR_SEM || sem_array[n_sem].pid_owner == -1) return -EINVAL;
+  if (current()->PID != sem_array[n_sem].pid_owner) return -EPERM;
+  sem_array[n_sem].pid_owner = -1;
+  if(!list_empty(&sem_array[n_sem].sem_queue))
+  {
+    while (!list_empty(&sem_array[n_sem].sem_queue))
+    {
+      struct task_struct* to_ready = list_head_to_task_struct(list_first(&sem_array[n_sem].sem_queue));
+      to_ready->state = ST_READY;
+      list_del(&to_ready->list);
+      list_add_tail(&to_ready->list, &readyqueue);
     }
   }
-  else return -1;
-
   return 0;
+}
+
+void sys_exit()
+{
+  // Deallocate all the propietary physical pages
+  /* Add to dir count */
+  int pos = calculate_dir_pos(current());
+  int i;
+  if(--dir_count[pos] == 0)
+  {
+    page_table_entry *process_PT = get_PT(current());
+    for (i=0; i<NUM_PAG_DATA; i++)
+    {
+      free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
+      del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
+    }
+  }
+  for (i = 0; i < 20; ++i)
+    if (sem_array[i].pid_owner == current()->PID)
+        sys_sem_destroy(i);
+
+  /* Free task_struct */
+  list_add_tail(&(current()->list), &freequeue);
+  current()->PID=-1;
+
+  /* Restarts execution of the next process */
+  sched_next_rr();
 }
