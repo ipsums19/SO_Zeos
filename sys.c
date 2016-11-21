@@ -53,6 +53,8 @@ int sys_clone(void (*function)(void), void *stack)
   struct list_head *lhcurrent = NULL;
   union task_union *uchild;
 
+  if (!access_ok(VERIFY_WRITE, stack,4) || !access_ok(VERIFY_READ, function, 4)) return -EFAULT;
+
   /* Any free task_struct? */
   if (list_empty(&freequeue)) return -ENOMEM;
 
@@ -85,8 +87,8 @@ int sys_clone(void (*function)(void), void *stack)
   *(DWord*)(uchild->task.register_esp)=(DWord)&ret_from_fork;
   uchild->task.register_esp-=sizeof(DWord);
   *(DWord*)(uchild->task.register_esp)=temp_ebp;
-  uchild->stack[KERNEL_STACK_SIZE-5] = function;
-  uchild->stack[KERNEL_STACK_SIZE-2] = stack;
+  uchild->stack[KERNEL_STACK_SIZE-5] = (int)function;
+  uchild->stack[KERNEL_STACK_SIZE-2] = (int)stack;
 
   /* Add to dir count */
   int pos = calculate_dir_pos(current());

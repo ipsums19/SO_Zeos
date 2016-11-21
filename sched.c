@@ -66,7 +66,7 @@ int allocate_DIR(struct task_struct *t)
 {
     int i;
     for (i = 0; i < NR_TASKS; ++i) {
-        if (dir_count[i] == 0) { // if == 0 --> found
+        if (dir_count[i] == 0) {
             dir_count[i] = 1;
             t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[i];
             return 1;
@@ -235,8 +235,18 @@ void init_sem()
   }
 }
 
+void init_dir_count()
+{
+  int i;
+  for(i = 0; i < NR_TASKS; ++i)
+  {
+    dir_count[i] = 0;
+  }
+}
+
 void init_sched()
 {
+  init_dir_count();
   init_freequeue();
   INIT_LIST_HEAD(&readyqueue);
   init_sem();
