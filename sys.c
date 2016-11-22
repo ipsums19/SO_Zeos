@@ -278,11 +278,12 @@ int sys_sem_init(int n_sem, unsigned int counter) {
 
 int sys_sem_wait(int n_sem) {
   if (n_sem < 0 || n_sem >= NR_SEM || sem_array[n_sem].pid_owner == -1) return -EINVAL;
-  if (--sem_array[n_sem].counter <= 0)
+  if (sem_array[n_sem].counter <= 0)
   {
     update_process_state_rr(current(), &sem_array[n_sem].sem_queue);
     sched_next_rr();
   }
+  else sem_array[n_sem].counter--;
   if (sem_array[n_sem].pid_owner == -1) return -EINVAL;
   return 0;
 }
@@ -305,15 +306,12 @@ int sys_sem_destroy(int n_sem) {
   if (n_sem < 0 || n_sem >= NR_SEM || sem_array[n_sem].pid_owner == -1) return -EINVAL;
   if (current()->PID != sem_array[n_sem].pid_owner) return -EPERM;
   sem_array[n_sem].pid_owner = -1;
-  if(!list_empty(&sem_array[n_sem].sem_queue))
+  while (!list_empty(&sem_array[n_sem].sem_queue))
   {
-    while (!list_empty(&sem_array[n_sem].sem_queue))
-    {
-      struct task_struct* to_ready = list_head_to_task_struct(list_first(&sem_array[n_sem].sem_queue));
-      to_ready->state = ST_READY;
-      list_del(&to_ready->list);
-      list_add_tail(&to_ready->list, &readyqueue);
-    }
+    struct task_struct* to_ready = list_head_to_task_struct(list_first(&sem_array[n_sem].sem_queue));
+    to_ready->state = ST_READY;
+    list_del(&to_ready->list);
+    list_add_tail(&to_ready->list, &readyqueue);
   }
   return 0;
 }
@@ -339,7 +337,8 @@ void sys_exit()
 
   /* Free task_struct */
   list_add_tail(&(current()->list), &freequeue);
-  current()->PID=-1;
+  current()->PID = -1;
+  current()->state = NULL;
 
   /* Restarts execution of the next process */
   sched_next_rr();
