@@ -38,6 +38,9 @@ int dir_count[NR_TASKS];
 
 struct semaphores sem_array[NR_SEM];
 
+struct circular_buffer circular;
+struct list_head keyboardqueue;
+
 void init_stats(struct stats *s)
 {
     s->user_ticks = 0;
@@ -244,12 +247,20 @@ void init_dir_count()
   }
 }
 
+void init_read()
+{
+    circular.ini = 0;
+    circular.fin = 0;
+}
+
 void init_sched()
 {
   init_dir_count();
   init_freequeue();
   INIT_LIST_HEAD(&readyqueue);
+  INIT_LIST_HEAD(&keyboardqueue);
   init_sem();
+  init_read();
 }
 
 struct task_struct* current()

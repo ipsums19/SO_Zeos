@@ -6,7 +6,6 @@
 #include <io.h>
 #include <mm.h>
 #include <mm_address.h>
-#include <sched.h>
 #include <p_stats.h>
 #include <errno.h>
 
@@ -230,31 +229,16 @@ int sys_write(int fd, char *buffer, int nbytes) {
   return (nbytes-bytes_left);
 }
 
-int sys_read(int fd, char *buffer, int nbytes) {
-  char localbuffer [TAM_BUFFER];
-  int bytes_left;
+int sys_read(int fd, char *buffer, int count) {
   int ret;
+  if ((ret = check_fd(fd, LECTURA)))
+      return ret;
+  if (count <= 0)
+      return -EINVAL;
+  if (!access_ok(VERIFY_READ, buffer, count))
+      return -EFAULT;
 
-  if ((ret = check_fd(fd, ESCRIPTURA)))
-    return ret;
-  if (nbytes < 0)
-    return -EINVAL;
-  if (!access_ok(VERIFY_READ, buffer, nbytes))
-    return -EFAULT;
-
-  bytes_left = nbytes;
-  while (bytes_left > TAM_BUFFER) {
-    copy_from_user(buffer, localbuffer, TAM_BUFFER);
-    ret = sys_write_console(localbuffer, TAM_BUFFER);
-    bytes_left-=ret;
-    buffer+=ret;
-  }
-  if (bytes_left > 0) {
-    copy_from_user(buffer, localbuffer,bytes_left);
-    ret = sys_write_console(localbuffer, bytes_left);
-    bytes_left-=ret;
-  }
-  return (nbytes-bytes_left);
+  return sys_read_keyboard(buffer, count);
 }
 
 extern int zeos_ticks;

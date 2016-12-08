@@ -14,6 +14,7 @@
 #define NR_TASKS      10
 #define NR_SEM        20
 #define KERNEL_STACK_SIZE	1024
+#define CIRCULAR_SIZE 1024
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
@@ -38,12 +39,19 @@ union task_union {
   unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, per procés */
 };
 
+struct circular_buffer{
+    char buffer[CIRCULAR_SIZE];
+    int ini;
+    int fin;
+};
+
+extern struct circular_buffer circular;
+extern struct list_head keyboardqueue;
+
 extern union task_union protected_tasks[NR_TASKS+2];
 extern union task_union *task; /* Vector de tasques */
 extern struct task_struct *idle_task;
 extern struct semaphores sem_array[NR_SEM];
-
-
 #define KERNEL_ESP(t)       	(DWord) &(t)->stack[KERNEL_STACK_SIZE]
 
 #define INITIAL_ESP       	KERNEL_ESP(&task[1])

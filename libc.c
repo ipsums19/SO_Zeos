@@ -76,7 +76,7 @@ int read(int fd, char *buffer, int count)
   __asm__ __volatile__ (
     "int $0x80\n\t"
     : "=a" (result)
-    : "a" (5), "b" (fd), "c" (buffer), "d" (size));
+    : "a" (5), "b" (fd), "c" (buffer), "d" (count));
   if (result<0)
   {
     errno = -result;
