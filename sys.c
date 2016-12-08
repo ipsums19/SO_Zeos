@@ -238,7 +238,10 @@ int sys_read(int fd, char *buffer, int count) {
   if (ret != 0) return -EBADF;
   if (count <= 0) return -EINVAL;
 
-  return sys_read_keyboard(buffer, count);
+  /*return sys_read_keyboard(buffer, count);*/
+  int i = sys_read_keyboard(buffer, count);
+  /*printk(buffer);*/
+  return i;
 }
 
 extern int zeos_ticks;

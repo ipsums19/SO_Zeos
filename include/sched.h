@@ -14,7 +14,7 @@
 #define NR_TASKS      10
 #define NR_SEM        20
 #define KERNEL_STACK_SIZE	1024
-#define CIRCULAR_SIZE 1024
+#define CIRCULAR_SIZE 10
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 

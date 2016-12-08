@@ -26,6 +26,8 @@ int sys_read_keyboard(char * buffer, int count)
 
   int size;
   int writted = 0;
+  int chars_writted = 0;
+  printk("\n");
   while(count > 0)
   {
     if(circular.fin < circular.ini)
@@ -40,17 +42,23 @@ int sys_read_keyboard(char * buffer, int count)
     }
     else
     {
-      printk("\nHOLA\n");
       copy_to_user(&(circular.buffer[circular.ini]), buffer + writted, size);
-
       count -= size;
-      /*char test2[] = "a";*/
-      /*itoa(count, &test2);*/
-      /*printk(test2);*/
+      printk("\n");
+      printk("lletra : ");
+      printk(&circular.buffer[circular.ini]);
 
       circular.ini += size;
       circular.ini %= CIRCULAR_SIZE;
-      writted += size;
+      writted = writted + size;
+      chars_writted += size;
+
+
+      char test2[] = "a";
+      itoa(chars_writted, &test2);
+      printk("\n");
+      printk("chars_writted : ");
+      printk(test2);
     }
   }
   return writted;
