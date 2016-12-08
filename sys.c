@@ -230,6 +230,32 @@ int sys_write(int fd, char *buffer, int nbytes) {
   return (nbytes-bytes_left);
 }
 
+int sys_read(int fd, char *buffer, int nbytes) {
+  char localbuffer [TAM_BUFFER];
+  int bytes_left;
+  int ret;
+
+  if ((ret = check_fd(fd, ESCRIPTURA)))
+    return ret;
+  if (nbytes < 0)
+    return -EINVAL;
+  if (!access_ok(VERIFY_READ, buffer, nbytes))
+    return -EFAULT;
+
+  bytes_left = nbytes;
+  while (bytes_left > TAM_BUFFER) {
+    copy_from_user(buffer, localbuffer, TAM_BUFFER);
+    ret = sys_write_console(localbuffer, TAM_BUFFER);
+    bytes_left-=ret;
+    buffer+=ret;
+  }
+  if (bytes_left > 0) {
+    copy_from_user(buffer, localbuffer,bytes_left);
+    ret = sys_write_console(localbuffer, bytes_left);
+    bytes_left-=ret;
+  }
+  return (nbytes-bytes_left);
+}
 
 extern int zeos_ticks;
 
