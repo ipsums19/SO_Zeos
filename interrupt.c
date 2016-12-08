@@ -44,19 +44,22 @@ void clock_routine()
 void keyboard_routine()
 {
   unsigned char c = inb(0x60);
-  if(circular.ini - circular.fin != 1)
+  if (c&0x80)
   {
-    circular.buffer[circular.fin] = char_map[c&0x7f];
-    circular.fin++;
-    circular.fin %= 1024;
+    if(circular.ini - circular.fin != 1)
+    {
+      circular.buffer[circular.fin] = char_map[c&0x7f];
+      circular.fin++;
+      circular.fin %= CIRCULAR_SIZE;
+    }
+    if(!list_empty(&keyboardqueue))
+    {
+      struct list_head *l = list_first(&keyboardqueue);
+      list_del(l);
+      list_add_tail(l, &readyqueue);
+    }
+    /*printc_xy(0, 0, char_map[c&0x7f]);*/
   }
-  if(!list_empty(&keyboardqueue))
-  {
-    struct list_head *l = list_first(&keyboardqueue);
-    list_del(l);
-    list_add_tail(l, &readyqueue);
-  }
-  /*if (c&0x80) printc_xy(0, 0, char_map[c&0x7f]);*/
 }
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)

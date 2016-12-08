@@ -238,7 +238,6 @@ int sys_read(int fd, char *buffer, int count) {
   if (ret != 0) return -EBADF;
   if (count <= 0) return -EINVAL;
 
-  printk("\n\nHOLAAAAAAAAA\n\n");
   return sys_read_keyboard(buffer, count);
 }
 

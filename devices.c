@@ -28,9 +28,8 @@ int sys_read_keyboard(char * buffer, int count)
   int writted = 0;
   while(count > 0)
   {
-    if(circular.fin < circular.ini) {
+    if(circular.fin < circular.ini)
       size = circular.fin + CIRCULAR_SIZE - circular.ini;
-    }
     else size = circular.fin - circular.ini;
 
     if(size > count) size = count;
@@ -39,15 +38,20 @@ int sys_read_keyboard(char * buffer, int count)
       list_add_tail(&(current()->list), &keyboardqueue);
       sched_next_rr();
     }
+    else
+    {
+      printk("\nHOLA\n");
+      copy_to_user(&(circular.buffer[circular.ini]), buffer + writted, size);
 
-    printk("\nHOLAAAAAAAAA\n");
-    copy_to_user(&(circular.buffer[circular.ini]), buffer + writted, size);
-    printk("\nDWWWWWWWWWWWWWWW\n");
+      count -= size;
+      /*char test2[] = "a";*/
+      /*itoa(count, &test2);*/
+      /*printk(test2);*/
 
-    count -= size;
-    circular.ini += size;
-    circular.ini %= CIRCULAR_SIZE;
-    writted += size;
+      circular.ini += size;
+      circular.ini %= CIRCULAR_SIZE;
+      writted += size;
+    }
   }
   return writted;
 }
