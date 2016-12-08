@@ -65,7 +65,7 @@ int copy_to_user(void *start, void *dest, int size)
 int access_ok(int type, const void * addr, unsigned long size)
 {
   unsigned long addr_ini, addr_fin;
-  
+
   addr_ini=(((unsigned long)addr)>>12);
   addr_fin=((((unsigned long)addr)+size)>>12);
 
@@ -133,9 +133,9 @@ unsigned long get_ticks(void) {
 void memset(void *s, unsigned char c, int size)
 {
   unsigned char *m=(unsigned char *)s;
-  
+
   int i;
-  
+
   for (i=0; i<size; i++)
   {
     m[i]=c;

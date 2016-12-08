@@ -14,8 +14,9 @@
 
 int check_fd(int fd, int permissions)
 {
-  if (fd!=1) return -EBADF;
-  if (permissions!=ESCRIPTURA) return -EACCES;
+  if (fd != 1 && fd != 0) return -EBADF;
+  if (fd == 1 && permissions!=ESCRIPTURA) return -EACCES;
+  if (fd == 0 && permissions!=LECTURA) return -EACCES;
   return 0;
 }
 
@@ -230,14 +231,14 @@ int sys_write(int fd, char *buffer, int nbytes) {
 }
 
 int sys_read(int fd, char *buffer, int count) {
-  int ret;
-  if ((ret = check_fd(fd, LECTURA)))
-      return ret;
-  if (count <= 0)
-      return -EINVAL;
   if (!access_ok(VERIFY_READ, buffer, count))
       return -EFAULT;
 
+  int ret = check_fd(fd, LECTURA);
+  if (ret != 0) return -EBADF;
+  if (count <= 0) return -EINVAL;
+
+  printk("\n\nHOLAAAAAAAAA\n\n");
   return sys_read_keyboard(buffer, count);
 }
 

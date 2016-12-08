@@ -18,9 +18,36 @@ int sys_write_console(char *buffer,int size)
 
 int sys_read_keyboard(char * buffer, int count)
 {
-  if(!list_empty(&keyboardqueue)){
+  if(!list_empty(&keyboardqueue))
+  {
       list_add_tail(&(current()->list), &keyboardqueue);
       sched_next_rr();
   }
-  return 0;
+
+  int size;
+  int writted = 0;
+  while(count > 0)
+  {
+    if(circular.fin < circular.ini) {
+      size = circular.fin + CIRCULAR_SIZE - circular.ini;
+    }
+    else size = circular.fin - circular.ini;
+
+    if(size > count) size = count;
+    if(size == 0)
+    {
+      list_add_tail(&(current()->list), &keyboardqueue);
+      sched_next_rr();
+    }
+
+    printk("\nHOLAAAAAAAAA\n");
+    copy_to_user(&(circular.buffer[circular.ini]), buffer + writted, size);
+    printk("\nDWWWWWWWWWWWWWWW\n");
+
+    count -= size;
+    circular.ini += size;
+    circular.ini %= CIRCULAR_SIZE;
+    writted += size;
+  }
+  return writted;
 }
