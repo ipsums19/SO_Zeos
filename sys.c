@@ -233,15 +233,10 @@ int sys_write(int fd, char *buffer, int nbytes) {
 int sys_read(int fd, char *buffer, int count) {
   if (!access_ok(VERIFY_READ, buffer, count))
       return -EFAULT;
-
-  int ret = check_fd(fd, LECTURA);
-  if (ret != 0) return -EBADF;
+  if (check_fd(fd, LECTURA)) return -EBADF;
   if (count <= 0) return -EINVAL;
 
-  /*return sys_read_keyboard(buffer, count);*/
-  int i = sys_read_keyboard(buffer, count);
-  /*printk(buffer);*/
-  return i;
+  return sys_read_keyboard(buffer, count);
 }
 
 extern int zeos_ticks;

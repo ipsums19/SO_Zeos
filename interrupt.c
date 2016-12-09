@@ -58,7 +58,6 @@ void keyboard_routine()
       list_del(l);
       list_add_tail(l, &readyqueue);
     }
-    /*printc_xy(0, 0, char_map[c&0x7f]);*/
   }
 }
 
