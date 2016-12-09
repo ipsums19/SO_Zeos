@@ -175,6 +175,7 @@ void init_idle (void)
 
   c->PID=0;
 
+  c->program_break = (NUM_PAG_KERNEL + NUM_PAG_CODE + NUM_PAG_DATA + 20)<<12;
   c->total_quantum=DEFAULT_QUANTUM;
 
   init_stats(&c->p_stats);
@@ -198,6 +199,7 @@ void init_task1(void)
 
   c->PID=1;
 
+  c->program_break = (NUM_PAG_KERNEL + NUM_PAG_CODE + NUM_PAG_DATA + 20)<<12;
   c->total_quantum=DEFAULT_QUANTUM;
 
   c->state=ST_RUN;

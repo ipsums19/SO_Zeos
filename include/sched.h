@@ -32,6 +32,7 @@ struct task_struct {
   enum state_t state;		/* State of the process */
   int total_quantum;		/* Total quantum of the process */
   struct stats p_stats;		/* Process stats */
+  int program_break; /* pos break */
 };
 
 union task_union {
