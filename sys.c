@@ -203,37 +203,35 @@ int sys_fork(void)
 
 void *sys_sbrk(int increment)
 {
-  void * direccio = &(current()->program_break);
   int nova_pos = ((current()->program_break)+increment)>>12;
   int current_pos = (current()->program_break)>>12;
+  int nova_pos_over = ((current()->program_break)+increment)%PAGE_SIZE;
   page_table_entry * current_table = get_PT(current());
-
   int i;
-  if(increment > 0){
-    if(TOTAL_PAGES > nova_pos){
-      for(i = current_pos; i < nova_pos; ++i){
-        if(current_table[i].entry == 0){
-          int pag = alloc_frame();
-          if(pag == -1) {//Comprovem si es correcte la pagina
-            free_frame(pag);
-            return (void *) -ENOMEM;
-          }
-          set_ss_pag(current_table, i, pag);
-        }
+  if(increment > 0)
+  {
+    if(TOTAL_PAGES <= nova_pos) return (void *) -ENOMEM;
+    for(i = current_pos; i < nova_pos || (i==nova_pos && nova_pos_over); i++) {
+      if(current_table[i].entry == 0) {
+        int pag = alloc_frame();
+        if(pag == -1)
+          return (void *) -ENOMEM;
+        set_ss_pag(current_table, i, pag);
       }
     }
-    /*return (void *) -ENOMEM;*/
   }
-  else if(increment < 0){
-    for(i = current_pos; i > nova_pos; --i){
+  else if(increment < 0)
+  {
+    if(0 > nova_pos) return (void *) -ENOMEM;
+    for(i = current_pos; i > nova_pos; --i) {
       free_frame(get_frame(current_table, i));
       del_ss_pag(current_table, i);
     }
     set_cr3(get_DIR(current()));
   }
-
+  int direccio = (current()->program_break);
   current()->program_break += increment;
-  return direccio;
+  return (void*)(direccio);
 }
 
 #define TAM_BUFFER 512
