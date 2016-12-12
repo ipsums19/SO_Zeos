@@ -168,6 +168,17 @@ int sys_fork(void)
     copy_data((void*)(pag<<12), (void*)((pag+NUM_PAG_DATA)<<12), PAGE_SIZE);
     del_ss_pag(parent_PT, pag+NUM_PAG_DATA);
   }
+  set_cr3(get_DIR(current()));
+
+  int program_b = current()->program_break>>12;
+  int program_break = current()->program_break;
+  int end = program_b - INI_HEAP;
+  for (pag = 0; pag < end || (pag == end && program_break%PAGE_SIZE); pag++)
+  {
+    set_ss_pag(parent_PT, pag + program_b, get_frame(process_PT, pag));
+    copy_data((void*)((INI_HEAP+pag)<<12), (void*)((pag + program_b)<<12), PAGE_SIZE);
+    del_ss_pag(parent_PT, pag + program_b);
+  }
   /* Deny access to the child's memory space */
   set_cr3(get_DIR(current()));
 
@@ -222,7 +233,7 @@ void *sys_sbrk(int increment)
   }
   else if(increment < 0)
   {
-    if(0 > nova_pos) return (void *) -ENOMEM;
+    if(INI_HEAP > nova_pos) return (void *) -ENOMEM;
     for(i = current_pos; i > nova_pos; --i) {
       free_frame(get_frame(current_table, i));
       del_ss_pag(current_table, i);
